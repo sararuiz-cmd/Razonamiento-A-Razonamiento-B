@@ -1,8 +1,18 @@
 package proyecto.com.Razonamiento_A_B.modelo;
 
-import javax.persistence.*;
-import javax.validation.constraints.*;
 import proyecto.com.Razonamiento_A_B.enums.NivelAcademico;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+import javax.validation.constraints.AssertTrue;
+import javax.validation.constraints.NotNull;
 
 @Entity
 @Table(name = "evaluados")

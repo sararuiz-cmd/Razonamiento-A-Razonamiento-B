@@ -12,7 +12,6 @@ import javax.persistence.Id;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 import javax.validation.ValidationException;
 import javax.validation.constraints.NotNull;
 
@@ -46,20 +45,17 @@ public class Evaluado extends Persona {
     @PrePersist
     @PreUpdate
     public void validarEdadMinima() {
-        if (getFechaNacimiento() == null || getEdad() < 14) {
+        if (getFechaNacimiento() == null || calcularEdad() < 14) {
             throw new ValidationException("El evaluado debe tener 14 años o más para aplicar el test.");
         }
     }
 
-    @Transient
     public boolean esElegibleParaAplicacion() {
-        return getEdad() >= 14;
+        return calcularEdad() >= 14;
     }
 
     @Override
-    @Transient
-    @Hidden
-    public String getRolSistema() {
+    public String obtenerRolSistema() {
         return "Evaluado";
     }
 

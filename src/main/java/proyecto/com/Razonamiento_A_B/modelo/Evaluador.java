@@ -6,17 +6,29 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
+import org.openxava.annotations.Hidden;
+import org.openxava.annotations.Tab;
+import org.openxava.annotations.View;
+
 @Entity
 @Table(name = "evaluadores")
+@View(members =
+        "Datos del evaluador {" +
+                "nombres, apellidos;" +
+                "fechaNacimiento, sexo;" +
+                "profesion" +
+                "}"
+)
+@Tab(properties = "idEvaluador, nombres, apellidos, profesion")
 public class Evaluador extends Persona {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_evaluador")
+    @Hidden
     private Integer idEvaluador;
 
     @NotBlank(message = "La profesión es obligatoria")
@@ -25,8 +37,7 @@ public class Evaluador extends Persona {
     private String profesion;
 
     @Override
-    @Transient
-    public String getRolSistema() {
+    public String obtenerRolSistema() {
         return "Evaluador";
     }
 

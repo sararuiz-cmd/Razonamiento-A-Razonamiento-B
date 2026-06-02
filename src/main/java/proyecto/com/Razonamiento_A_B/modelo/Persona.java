@@ -6,7 +6,6 @@ import javax.persistence.Column;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.MappedSuperclass;
-import javax.persistence.Transient;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Past;
@@ -37,23 +36,20 @@ public abstract class Persona {
     @Column(length = 20, nullable = false)
     private Sexo sexo;
 
-    @Transient
-    public int getEdad() {
+    public int calcularEdad() {
         if (fechaNacimiento == null) {
             return 0;
         }
         return Period.between(fechaNacimiento, LocalDate.now()).getYears();
     }
 
-    @Transient
-    public String getNombreCompleto() {
+    public String obtenerNombreCompleto() {
         String nombre = nombres == null ? "" : nombres;
         String apellido = apellidos == null ? "" : apellidos;
         return (nombre + " " + apellido).trim();
     }
 
-    @Transient
-    public abstract String getRolSistema();
+    public abstract String obtenerRolSistema();
 
     public String getNombres() {
         return nombres;

@@ -9,18 +9,33 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-import javax.validation.constraints.AssertTrue;
+import javax.validation.ValidationException;
 import javax.validation.constraints.NotNull;
+
+import org.openxava.annotations.Hidden;
+import org.openxava.annotations.Tab;
+import org.openxava.annotations.View;
 
 @Entity
 @Table(name = "evaluados")
+@View(members =
+        "Datos del evaluado {" +
+                "nombres, apellidos;" +
+                "fechaNacimiento, sexo;" +
+                "nivelAcademico" +
+                "}"
+)
+@Tab(properties = "idEvaluado, nombres, apellidos, fechaNacimiento, nivelAcademico")
 public class Evaluado extends Persona {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_evaluado")
+    @Hidden
     private Integer idEvaluado;
 
     @NotNull(message = "El nivel académico es obligatorio")
@@ -28,9 +43,12 @@ public class Evaluado extends Persona {
     @Column(name = "nivel_academico", length = 30, nullable = false)
     private NivelAcademico nivelAcademico;
 
-    @AssertTrue(message = "El evaluado debe tener 14 años o más para aplicar el test")
-    public boolean isEdadMinimaValida() {
-        return getFechaNacimiento() != null && getEdad() >= 14;
+    @PrePersist
+    @PreUpdate
+    public void validarEdadMinima() {
+        if (getFechaNacimiento() == null || getEdad() < 14) {
+            throw new ValidationException("El evaluado debe tener 14 años o más para aplicar el test.");
+        }
     }
 
     @Transient
@@ -40,6 +58,7 @@ public class Evaluado extends Persona {
 
     @Override
     @Transient
+    @Hidden
     public String getRolSistema() {
         return "Evaluado";
     }

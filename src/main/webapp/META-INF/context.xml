@@ -8,9 +8,10 @@
 			  maxTotal="20"
 			  maxIdle="5"
 			  maxWaitMillis="10000"
-			  username="postgres"
-			  password="2208sara"
+			  username="postgres.czlffsalmdnzxbanjmdj"
+			  password="uNjuEArBZCdK8bkd"
 			  driverClassName="org.postgresql.Driver"
-			  url="jdbc:postgresql://localhost:5432/razonamiento_db"/>
+			  url="jdbc:postgresql://aws-1-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require"/>
+
 
 </Context>

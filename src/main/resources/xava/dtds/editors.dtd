@@ -2,7 +2,7 @@
 
 <!ELEMENT editors (editor*)>
 
-<!ELEMENT editor (property*, formatter?, list-formatter?, (for-type | for-stereotype | for-model-property | for-valid-values | for-references | for-reference | for-collections | for-element-collections | for-collection | for-tabs | for-tab | for-annotation)*)>
+<!ELEMENT editor (property*, formatter?, list-formatter?, (for-type | for-stereotype | for-model-property | for-valid-values | for-references | for-reference | for-collections | for-element-collections | for-descriptions-lists | for-collection | for-tabs | for-tab | for-annotation)*)>
 <!ATTLIST editor
  name CDATA #IMPLIED
  url CDATA #REQUIRED
@@ -16,6 +16,7 @@
  init-action CDATA #IMPLIED
  release-action CDATA #IMPLIED
  selectable-items (true|false) "true"
+ default-label-format (normal|small|no-label) #IMPLIED
 >
 
 <!ELEMENT property EMPTY>
@@ -71,12 +72,30 @@
 
 <!ELEMENT for-element-collections EMPTY>
 
+<!ELEMENT for-descriptions-lists EMPTY>
+
 <!ELEMENT for-collection EMPTY>
 <!ATTLIST for-collection
  model CDATA #REQUIRED
 >
 
-<!ELEMENT for-tabs EMPTY>
+<!ELEMENT for-tabs (has-type*, has-annotation*, has-stereotype*)>
+
+<!ELEMENT has-type EMPTY>
+<!ATTLIST has-type
+  type CDATA #IMPLIED
+>
+
+<!ELEMENT has-annotation EMPTY>
+<!ATTLIST has-annotation
+  annotation CDATA #IMPLIED
+>
+
+<!ELEMENT has-stereotype EMPTY>
+<!ATTLIST has-stereotype
+  stereotype CDATA #IMPLIED
+>
+
 
 <!ELEMENT for-tab EMPTY>
 <!ATTLIST for-tab

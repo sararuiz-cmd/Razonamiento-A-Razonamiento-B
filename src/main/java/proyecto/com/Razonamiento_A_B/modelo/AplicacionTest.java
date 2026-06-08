@@ -43,4 +43,29 @@ public class AplicacionTest {
     @Column(name="respuesta_seleccionada")
     private Map<Integer, String> respuestasMarcadas = new HashMap<>();
 
+    public void iniciarFormaA() {
+        if (this.estado == EstadoAplicacion.PENDIENTE) {
+            this.estado = EstadoAplicacion.EN_FORMA_A;
+            this.fechaInicio = LocalDateTime.now();
+        }
     }
+
+    public void finalizarFormaA() {
+        if (this.estado == EstadoAplicacion.EN_FORMA_A) {
+            this.estado = EstadoAplicacion.FINALIZADO_FORMA_A;
+        }
+    }
+
+    public void iniciarFormaB() {
+        if (this.estado == EstadoAplicacion.FINALIZADO_FORMA_A) {
+            this.estado = EstadoAplicacion.EN_FORMA_B;
+        }
+    }
+
+    public void finalizarAplicacion() {
+        if (this.estado == EstadoAplicacion.EN_FORMA_B) {
+            this.estado = EstadoAplicacion.FINALIZADO;
+            this.fechaFin = LocalDateTime.now();
+        }
+    }
+}

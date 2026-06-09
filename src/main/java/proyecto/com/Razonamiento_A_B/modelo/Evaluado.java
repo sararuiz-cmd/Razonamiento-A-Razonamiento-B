@@ -1,5 +1,8 @@
 package proyecto.com.Razonamiento_A_B.modelo;
 
+import org.openxava.annotations.Hidden;
+import org.openxava.annotations.Tab;
+import org.openxava.annotations.View;
 import proyecto.com.Razonamiento_A_B.enums.NivelAcademico;
 
 import javax.persistence.Column;
@@ -12,41 +15,31 @@ import javax.persistence.Id;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
-import javax.validation.ValidationException;
 import javax.validation.constraints.NotNull;
-
-import org.openxava.annotations.Hidden;
-import org.openxava.annotations.Tab;
-import org.openxava.annotations.View;
 
 @Entity
 @Table(name = "evaluados")
-@View(members =
-        "Datos del evaluado {" +
-                "nombres, apellidos;" +
-                "fechaNacimiento, sexo;" +
-                "nivelAcademico" +
-                "}"
+@View(name = "Simple", members =
+        "Datos personales { nombres, apellidos; fechaNacimiento, sexo; nivelAcademico }"
 )
-@Tab(properties = "idEvaluado, nombres, apellidos, fechaNacimiento, nivelAcademico")
+@Tab(properties = "nombres, apellidos, fechaNacimiento, sexo, nivelAcademico")
 public class Evaluado extends Persona {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_evaluado")
     @Hidden
-    private Integer idEvaluado;
+    private int idEvaluado;
 
     @NotNull(message = "El nivel académico es obligatorio")
     @Enumerated(EnumType.STRING)
-    @Column(name = "nivel_academico", length = 30, nullable = false)
+    @Column(length = 30, nullable = false)
     private NivelAcademico nivelAcademico;
 
     @PrePersist
     @PreUpdate
     public void validarEdadMinima() {
-        if (getFechaNacimiento() == null || calcularEdad() < 14) {
-            throw new ValidationException("El evaluado debe tener 14 años o más para aplicar el test.");
+        if (!esElegibleParaAplicacion()) {
+            throw new IllegalArgumentException("El evaluado debe tener 14 años o más para realizar el test.");
         }
     }
 
@@ -59,11 +52,11 @@ public class Evaluado extends Persona {
         return "Evaluado";
     }
 
-    public Integer getIdEvaluado() {
+    public int getIdEvaluado() {
         return idEvaluado;
     }
 
-    public void setIdEvaluado(Integer idEvaluado) {
+    public void setIdEvaluado(int idEvaluado) {
         this.idEvaluado = idEvaluado;
     }
 

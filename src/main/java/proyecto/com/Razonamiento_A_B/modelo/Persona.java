@@ -28,12 +28,12 @@ public abstract class Persona {
 
     @NotNull(message = "La fecha de nacimiento es obligatoria")
     @Past(message = "La fecha de nacimiento debe ser anterior a la fecha actual")
-    @Column(name = "fecha_nacimiento", nullable = false)
+    @Column(nullable = false)
     private LocalDate fechaNacimiento;
 
     @NotNull(message = "El sexo es obligatorio")
     @Enumerated(EnumType.STRING)
-    @Column(length = 20, nullable = false)
+    @Column(length = 1, nullable = false)
     private Sexo sexo;
 
     public int calcularEdad() {
@@ -44,9 +44,9 @@ public abstract class Persona {
     }
 
     public String obtenerNombreCompleto() {
-        String nombre = nombres == null ? "" : nombres;
-        String apellido = apellidos == null ? "" : apellidos;
-        return (nombre + " " + apellido).trim();
+        String nombresTexto = nombres == null ? "" : nombres.trim();
+        String apellidosTexto = apellidos == null ? "" : apellidos.trim();
+        return (nombresTexto + " " + apellidosTexto).trim();
     }
 
     public abstract String obtenerRolSistema();

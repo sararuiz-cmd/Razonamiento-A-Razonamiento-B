@@ -78,9 +78,6 @@ public class AplicacionTest {
     @ListProperties("itemRazonamiento.numero, itemRazonamiento.subFactor, opcionSeleccionada, estadoRespuesta")
     private Collection<RespuestaMarcada> respuestasMarcadas = new ArrayList<>();
 
-    @OneToOne(mappedBy = "aplicacionTest", cascade = CascadeType.ALL, orphanRemoval = true)
-    private ResultadoRazonamiento resultado;
-
     public void iniciarFormaA() {
         if (estado != EstadoAplicacion.PENDIENTE) {
             throw new IllegalStateException("La Forma A solo puede iniciar cuando la aplicación está pendiente.");
@@ -182,11 +179,4 @@ public class AplicacionTest {
         this.respuestasMarcadas = respuestasMarcadas;
     }
 
-    public ResultadoRazonamiento getResultado() {
-        return resultado;
-    }
-
-    public void setResultado(ResultadoRazonamiento resultado) {
-        this.resultado = resultado;
-    }
 }

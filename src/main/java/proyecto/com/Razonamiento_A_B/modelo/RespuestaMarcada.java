@@ -56,4 +56,57 @@ public class RespuestaMarcada {
     @Enumerated(EnumType.STRING)
     @Column(length = 20, nullable = false)
     private EstadoRespuesta estadoRespuesta = EstadoRespuesta.OMITIDA;
+
+    @PrePersist
+    @PreUpdate
+    public void actualizarEstadoRespuesta() {
+        estadoRespuesta = opcionSeleccionada == null ? EstadoRespuesta.OMITIDA : EstadoRespuesta.RESPONDIDA;
+    }
+
+    public boolean esCorrecta() {
+        if (itemRazonamiento == null || itemRazonamiento.getRespuestaCorrecta() == null || opcionSeleccionada == null) {
+            return false;
+        }
+        return opcionSeleccionada == itemRazonamiento.getRespuestaCorrecta();
+    }
+
+    public int getIdRespuesta() {
+        return idRespuesta;
+    }
+
+    public void setIdRespuesta(int idRespuesta) {
+        this.idRespuesta = idRespuesta;
+    }
+
+    public AplicacionTest getAplicacionTest() {
+        return aplicacionTest;
+    }
+
+    public void setAplicacionTest(AplicacionTest aplicacionTest) {
+        this.aplicacionTest = aplicacionTest;
+    }
+
+    public ItemRazonamiento getItemRazonamiento() {
+        return itemRazonamiento;
+    }
+
+    public void setItemRazonamiento(ItemRazonamiento itemRazonamiento) {
+        this.itemRazonamiento = itemRazonamiento;
+    }
+
+    public OpcionRespuesta getOpcionSeleccionada() {
+        return opcionSeleccionada;
+    }
+
+    public void setOpcionSeleccionada(OpcionRespuesta opcionSeleccionada) {
+        this.opcionSeleccionada = opcionSeleccionada;
+    }
+
+    public EstadoRespuesta getEstadoRespuesta() {
+        return estadoRespuesta;
+    }
+
+    public void setEstadoRespuesta(EstadoRespuesta estadoRespuesta) {
+        this.estadoRespuesta = estadoRespuesta;
+    }
 }

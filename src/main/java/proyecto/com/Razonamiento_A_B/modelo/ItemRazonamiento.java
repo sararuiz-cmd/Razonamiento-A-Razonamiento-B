@@ -1,125 +1,124 @@
 package proyecto.com.Razonamiento_A_B.modelo;
 
-import proyecto.com.Razonamiento_A_B.enums.TipoItem;
+import org.openxava.annotations.DescriptionsList;
+import org.openxava.annotations.Hidden;
+import org.openxava.annotations.Stereotype;
+import org.openxava.annotations.Tab;
+import org.openxava.annotations.View;
+import proyecto.com.Razonamiento_A_B.enums.OpcionRespuesta;
 import proyecto.com.Razonamiento_A_B.enums.SubFactor;
+import proyecto.com.Razonamiento_A_B.enums.TipoItem;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.JoinColumn;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
-import javax.validation.ValidationException;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-
-import org.openxava.annotations.DescriptionsList;
-import org.openxava.annotations.Hidden;
-import org.openxava.annotations.Tab;
-import org.openxava.annotations.View;
 
 @Entity
 @Table(name = "items_razonamiento")
 @View(members =
-        "clasificacion { " +
-                "numero, tipoItem, subFactor;" +
-                "testRazonamiento" +
-                "};" +
-                "contenido {" +
-                "enunciado" +
-                "};" +
-                "opcionesRespuesta {" +
-                "opcionA, opcionB;" +
-                "opcionC, opcionD;" +
-                "respuestaCorrecta" +
-                "}"
+        "Datos del item { testRazonamiento; numero; tipoItem, subFactor } " +
+                "Contenido { enunciado; opcionA; opcionB; opcionC; opcionD; respuestaCorrecta }"
 )
-@Tab(properties = "numero, tipoItem, subFactor, enunciado, respuestaCorrecta")
+@Tab(properties = "testRazonamiento.nombre, numero, tipoItem, subFactor, respuestaCorrecta")
 public class ItemRazonamiento {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_item")
     @Hidden
-    private Integer idItem;
+    private int idItem;
 
-    @NotNull(message = "El número de ítem es obligatorio")
-    @Column(name = "numero", nullable = false)
+    @NotNull(message = "El número del ítem es obligatorio")
+    @Min(value = 1, message = "El número mínimo del ítem es 1")
+    @Max(value = 55, message = "El número máximo del ítem es 55")
+    @Column(nullable = false)
     private Integer numero;
 
-    @NotNull(message = "El enunciado de la pregunta es obligatorio")
-    @Size(max = 500, message = "El enunciado no puede exceder los 500 caracteres")
-    @Column(name = "enunciado", length = 500, nullable = false)
+    @NotBlank(message = "El enunciado es obligatorio")
+    @Stereotype("MEMO")
+    @Column(length = 2000, nullable = false)
     private String enunciado;
 
-    @NotNull(message = "La opción A es obligatoria")
-    @Size(max = 200, message = "La opción A no puede exceder los 200 caracteres")
-    @Column(name = "opcion_a", length = 200, nullable = false)
+    @NotBlank(message = "La opción A es obligatoria")
+    @Size(max = 500, message = "La opción A no debe superar 500 caracteres")
+    @Column(length = 500, nullable = false)
     private String opcionA;
 
-    @NotNull(message = "La opción B es obligatoria")
-    @Size(max = 200, message = "La opción B no puede exceder los 200 caracteres")
-    @Column(name = "opcion_b", length = 200, nullable = false)
+    @NotBlank(message = "La opción B es obligatoria")
+    @Size(max = 500, message = "La opción B no debe superar 500 caracteres")
+    @Column(length = 500, nullable = false)
     private String opcionB;
 
-    @NotNull(message = "La opción C es obligatoria")
-    @Size(max = 200, message = "La opción C no puede exceder los 200 caracteres")
-    @Column(name = "opcion_c", length = 200, nullable = false)
+    @NotBlank(message = "La opción C es obligatoria")
+    @Size(max = 500, message = "La opción C no debe superar 500 caracteres")
+    @Column(length = 500, nullable = false)
     private String opcionC;
 
-    @NotNull(message = "La opción D es obligatoria")
-    @Size(max = 200, message = "La opción D no puede exceder los 200 caracteres")
-    @Column(name = "opcion_d", length = 200, nullable = false)
+    @NotBlank(message = "La opción D es obligatoria")
+    @Size(max = 500, message = "La opción D no debe superar 500 caracteres")
+    @Column(length = 500, nullable = false)
     private String opcionD;
 
     @NotNull(message = "La respuesta correcta es obligatoria")
-    @Size(max = 1, message = "La respuesta debe ser un único carácter")
-    @Column(name = "respuesta_correcta", length = 1, nullable = false)
-    private String respuestaCorrecta; // Cambiado a String para máxima estabilidad en UI
-
-    @NotNull(message = "El tipo de ítem es obligatorio")
     @Enumerated(EnumType.STRING)
-    @Column(name = "tipo_item", length = 20, nullable = false)
-    private TipoItem tipoItem;
+    @Column(length = 1, nullable = false)
+    private OpcionRespuesta respuestaCorrecta;
 
     @NotNull(message = "El subfactor es obligatorio")
     @Enumerated(EnumType.STRING)
-    @Column(name = "sub_factor", length = 20, nullable = false)
+    @Column(length = 10, nullable = false)
     private SubFactor subFactor;
 
-    @ManyToOne
-    @JoinColumn(name = "id_test_fk", nullable = false)
+    @NotNull(message = "El tipo de ítem es obligatorio")
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30, nullable = false)
+    private TipoItem tipoItem;
+
+    @NotNull(message = "El test de razonamiento es obligatorio")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "id_test", nullable = false)
     @DescriptionsList(descriptionProperties = "nombre")
     private TestRazonamiento testRazonamiento;
 
     @PrePersist
     @PreUpdate
     public void validarConsistenciaItem() {
-        // Formatear y validar la respuesta correcta en String
-        if (respuestaCorrecta != null) {
-            respuestaCorrecta = respuestaCorrecta.toUpperCase().trim();
-            if (!respuestaCorrecta.equals("A") && !respuestaCorrecta.equals("B") && !respuestaCorrecta.equals("C") && !respuestaCorrecta.equals("D")) {
-                throw new ValidationException("La respuesta correcta debe ser una de las opciones válidas: A, B, C o D.");
-            }
+        if (numero == null || numero < 1 || numero > 55) {
+            throw new IllegalArgumentException("El número del ítem debe estar entre 1 y 55.");
         }
 
-        if (numero == null || numero < 1 || numero > 55) {
-            throw new ValidationException("El número de ítem debe estar en el rango del instrumento (1 al 55).");
+        if (respuestaCorrecta == null) {
+            throw new IllegalArgumentException("La respuesta correcta debe ser A, B, C o D.");
+        }
+
+        if (subFactor == null) {
+            throw new IllegalArgumentException("Debe indicar el subfactor del ítem.");
+        }
+
+        if (tipoItem == null) {
+            throw new IllegalArgumentException("Debe indicar el tipo de ítem.");
         }
     }
 
-    // Getters y Setters
-    public Integer getIdItem() {
+    public int getIdItem() {
         return idItem;
     }
 
-    public void setIdItem(Integer idItem) {
+    public void setIdItem(int idItem) {
         this.idItem = idItem;
     }
 
@@ -171,20 +170,12 @@ public class ItemRazonamiento {
         this.opcionD = opcionD;
     }
 
-    public String getRespuestaCorrecta() {
+    public OpcionRespuesta getRespuestaCorrecta() {
         return respuestaCorrecta;
     }
 
-    public void setRespuestaCorrecta(String respuestaCorrecta) {
+    public void setRespuestaCorrecta(OpcionRespuesta respuestaCorrecta) {
         this.respuestaCorrecta = respuestaCorrecta;
-    }
-
-    public TipoItem getTipoItem() {
-        return tipoItem;
-    }
-
-    public void setTipoItem(TipoItem tipoItem) {
-        this.tipoItem = tipoItem;
     }
 
     public SubFactor getSubFactor() {
@@ -193,6 +184,14 @@ public class ItemRazonamiento {
 
     public void setSubFactor(SubFactor subFactor) {
         this.subFactor = subFactor;
+    }
+
+    public TipoItem getTipoItem() {
+        return tipoItem;
+    }
+
+    public void setTipoItem(TipoItem tipoItem) {
+        this.tipoItem = tipoItem;
     }
 
     public TestRazonamiento getTestRazonamiento() {

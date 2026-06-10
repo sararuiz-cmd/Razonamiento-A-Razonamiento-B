@@ -1,8 +1,11 @@
 package proyecto.com.Razonamiento_A_B.modelo;
 
-import proyecto.com.Razonamiento_A_B.modelo.ItemRazonamiento;
+import org.openxava.annotations.Hidden;
+import org.openxava.annotations.ListProperties;
+import org.openxava.annotations.Stereotype;
+import org.openxava.annotations.Tab;
+import org.openxava.annotations.View;
 
-import java.util.Collection;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -11,68 +14,62 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-
-import org.openxava.annotations.Hidden;
-import org.openxava.annotations.Stereotype;
-import org.openxava.annotations.Tab;
-import org.openxava.annotations.View;
+import java.util.ArrayList;
+import java.util.Collection;
 
 @Entity
-@Table(name = "tests_razonamiento")
+@Table(name = "test_razonamiento")
 @View(members =
-        "Datos del Test {" +
-                "nombre;" +
-                "tiempoFormaA, tiempoFormaB" +
-                "};" +
-                "Instrucciones de Aplicación {" +
-                "instruccionesFormaA;" +
-                "instruccionesFormaB" +
-                "};" +
-                "Reactivos del Test {" +
-                "items" +
-                "}"
+        "Datos generales { nombre; tiempoFormaA, tiempoFormaB } " +
+                "Instrucciones { instruccionesFormaA; instruccionesFormaB } " +
+                "Items { items }"
 )
-@Tab(properties = "idTest, nombre, tiempoFormaA, tiempoFormaB")
+@Tab(properties = "nombre, tiempoFormaA, tiempoFormaB")
 public class TestRazonamiento {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_test")
     @Hidden
-    private Integer idTest;
+    private int idTest;
 
-    @NotNull(message = "El nombre del test es obligatorio")
-    @Size(max = 100, message = "El nombre no puede exceder los 100 caracteres")
-    @Column(name = "nombre", length = 100, nullable = false)
+    @NotBlank(message = "El nombre del test es obligatorio")
+    @Size(max = 120, message = "El nombre no debe superar 120 caracteres")
+    @Column(length = 120, nullable = false)
     private String nombre;
 
-    @NotNull(message = "El tiempo de la Forma A es obligatorio")
-    @Column(name = "tiempo_forma_a", nullable = false)
-    private Integer tiempoFormaA;
-
-    @NotNull(message = "El tiempo de la Forma B es obligatorio")
-    @Column(name = "tiempo_forma_b", nullable = false)
-    private Integer tiempoFormaB;
-
+    @NotBlank(message = "Las instrucciones de la Forma A son obligatorias")
     @Stereotype("MEMO")
-    @Column(name = "instrucciones_forma_a", columnDefinition = "TEXT")
+    @Column(length = 2000, nullable = false)
     private String instruccionesFormaA;
 
+    @NotBlank(message = "Las instrucciones de la Forma B son obligatorias")
     @Stereotype("MEMO")
-    @Column(name = "instrucciones_forma_b", columnDefinition = "TEXT")
+    @Column(length = 2000, nullable = false)
     private String instruccionesFormaB;
 
-    @OneToMany(mappedBy = "testRazonamiento", cascade = CascadeType.ALL)
-    private Collection<ItemRazonamiento> items;
+    @NotNull(message = "El tiempo de la Forma A es obligatorio")
+    @Min(value = 1, message = "El tiempo de la Forma A debe ser mayor que cero")
+    @Column(nullable = false)
+    private Integer tiempoFormaA = 10;
 
-    // Getters y Setters
-    public Integer getIdTest() {
+    @NotNull(message = "El tiempo de la Forma B es obligatorio")
+    @Min(value = 1, message = "El tiempo de la Forma B debe ser mayor que cero")
+    @Column(nullable = false)
+    private Integer tiempoFormaB = 12;
+
+    @OneToMany(mappedBy = "testRazonamiento", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ListProperties("numero, tipoItem, subFactor, enunciado, respuestaCorrecta")
+    private Collection<ItemRazonamiento> items = new ArrayList<>();
+
+    public int getIdTest() {
         return idTest;
     }
 
-    public void setIdTest(Integer idTest) {
+    public void setIdTest(int idTest) {
         this.idTest = idTest;
     }
 
@@ -82,22 +79,6 @@ public class TestRazonamiento {
 
     public void setNombre(String nombre) {
         this.nombre = nombre;
-    }
-
-    public Integer getTiempoFormaA() {
-        return tiempoFormaA;
-    }
-
-    public void setTiempoFormaA(Integer tiempoFormaA) {
-        this.tiempoFormaA = tiempoFormaA;
-    }
-
-    public Integer getTiempoFormaB() {
-        return tiempoFormaB;
-    }
-
-    public void setTiempoFormaB(Integer tiempoFormaB) {
-        this.tiempoFormaB = tiempoFormaB;
     }
 
     public String getInstruccionesFormaA() {
@@ -114,6 +95,22 @@ public class TestRazonamiento {
 
     public void setInstruccionesFormaB(String instruccionesFormaB) {
         this.instruccionesFormaB = instruccionesFormaB;
+    }
+
+    public Integer getTiempoFormaA() {
+        return tiempoFormaA;
+    }
+
+    public void setTiempoFormaA(Integer tiempoFormaA) {
+        this.tiempoFormaA = tiempoFormaA;
+    }
+
+    public Integer getTiempoFormaB() {
+        return tiempoFormaB;
+    }
+
+    public void setTiempoFormaB(Integer tiempoFormaB) {
+        this.tiempoFormaB = tiempoFormaB;
     }
 
     public Collection<ItemRazonamiento> getItems() {

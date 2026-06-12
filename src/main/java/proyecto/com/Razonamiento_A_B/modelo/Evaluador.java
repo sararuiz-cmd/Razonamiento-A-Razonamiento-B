@@ -1,46 +1,66 @@
 package proyecto.com.Razonamiento_A_B.modelo;
 
-import org.openxava.annotations.Hidden;
-import org.openxava.annotations.Tab;
-import org.openxava.annotations.View;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
+import org.openxava.annotations.Hidden;
+import org.openxava.annotations.Required;
+import org.openxava.annotations.Tab;
+import org.openxava.annotations.View;
 
 @Entity
-@Table(name = "evaluadores")
-@View(name = "Simple", members =
-        "Datos personales { nombres, apellidos; fechaNacimiento, sexo; profesion }"
+@View(name = "Datos del evaluador", members =
+        "nombres, apellidos; " +
+                "identificacion, sexo; " +
+                "fechaNacimiento, profesion"
 )
-@Tab(properties = "nombres, apellidos, sexo, profesion")
+@Tab(properties = "identificacion, nombres, apellidos, sexo, profesion")
 public class Evaluador extends Persona {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Hidden
-    private int idEvaluador;
+    private Integer idEvaluador;
 
+    @Required
     @NotBlank(message = "La profesión es obligatoria")
-    @Size(max = 80, message = "La profesión no debe superar 80 caracteres")
     @Column(length = 80, nullable = false)
     private String profesion;
 
-    @Override
-    public String obtenerRolSistema() {
-        return "Evaluador";
+    @PrePersist
+    @PreUpdate
+    private void validarAntesDeGuardar() {
+        registrar();
+        validarCredenciales();
     }
 
-    public int getIdEvaluador() {
+    public void validarCredenciales() {
+        if (profesion == null || profesion.trim().isEmpty()) {
+            throw new IllegalStateException("El evaluador debe tener una profesión registrada");
+        }
+    }
+
+    @Override
+    public String obtenerRolSistema() {
+        return "EVALUADOR";
+    }
+
+    @Override
+    public void registrar() {
+        super.registrar();
+        validarCredenciales();
+    }
+
+    public Integer getIdEvaluador() {
         return idEvaluador;
     }
 
-    public void setIdEvaluador(int idEvaluador) {
+    public void setIdEvaluador(Integer idEvaluador) {
         this.idEvaluador = idEvaluador;
     }
 

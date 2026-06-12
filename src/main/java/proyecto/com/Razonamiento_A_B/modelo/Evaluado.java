@@ -1,10 +1,4 @@
 package proyecto.com.Razonamiento_A_B.modelo;
-
-import org.openxava.annotations.Hidden;
-import org.openxava.annotations.Tab;
-import org.openxava.annotations.View;
-import proyecto.com.Razonamiento_A_B.enums.NivelAcademico;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -14,22 +8,30 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
-import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
+import org.openxava.annotations.Hidden;
+import org.openxava.annotations.Required;
+import org.openxava.annotations.Tab;
+import org.openxava.annotations.View;
+import proyecto.com.Razonamiento_A_B.enums.NivelAcademico;
 
 @Entity
-@Table(name = "evaluados")
-@View(name = "Simple", members =
-        "Datos personales { nombres, apellidos; fechaNacimiento, sexo; nivelAcademico }"
+@View(name = "Datos del evaluado", members =
+        "nombres, apellidos; " +
+                "identificacion, sexo; " +
+                "fechaNacimiento, nivelAcademico"
 )
-@Tab(properties = "nombres, apellidos, fechaNacimiento, sexo, nivelAcademico")
+@Tab(properties = "identificacion, nombres, apellidos, sexo, fechaNacimiento, nivelAcademico")
 public class Evaluado extends Persona {
+
+    private static final int EDAD_MINIMA = 14;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Hidden
-    private int idEvaluado;
+    private Integer idEvaluado;
 
+    @Required
     @NotNull(message = "El nivel académico es obligatorio")
     @Enumerated(EnumType.STRING)
     @Column(length = 30, nullable = false)
@@ -37,26 +39,43 @@ public class Evaluado extends Persona {
 
     @PrePersist
     @PreUpdate
-    public void validarEdadMinima() {
-        if (!esElegibleParaAplicacion()) {
-            throw new IllegalArgumentException("El evaluado debe tener 14 años o más para realizar el test.");
+    private void validarAntesDeGuardar() {
+        registrar();
+        if (!validarEdad()) {
+            throw new IllegalStateException("El evaluado debe tener al menos 14 años");
         }
     }
 
-    public boolean esElegibleParaAplicacion() {
-        return calcularEdad() >= 14;
+    public void actualizar() {
+        validarAntesDeGuardar();
+    }
+
+    public boolean validarEdad() {
+        return calcularEdad() >= EDAD_MINIMA;
+    }
+
+    public String obtenerHistorialResultados() {
+        return "Consultar las aplicaciones y resultados asociados al evaluado " + obtenerNombreCompleto();
     }
 
     @Override
     public String obtenerRolSistema() {
-        return "Evaluado";
+        return "EVALUADO";
     }
 
-    public int getIdEvaluado() {
+    @Override
+    public void registrar() {
+        super.registrar();
+        if (nivelAcademico == null) {
+            throw new IllegalArgumentException("Debe seleccionar el nivel académico");
+        }
+    }
+
+    public Integer getIdEvaluado() {
         return idEvaluado;
     }
 
-    public void setIdEvaluado(int idEvaluado) {
+    public void setIdEvaluado(Integer idEvaluado) {
         this.idEvaluado = idEvaluado;
     }
 

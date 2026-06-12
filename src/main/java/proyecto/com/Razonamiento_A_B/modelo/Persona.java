@@ -1,36 +1,40 @@
 package proyecto.com.Razonamiento_A_B.modelo;
 
-import proyecto.com.Razonamiento_A_B.enums.Sexo;
-
+import java.time.LocalDate;
+import java.time.Period;
 import javax.persistence.Column;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.MappedSuperclass;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Past;
-import javax.validation.constraints.Size;
-import java.time.LocalDate;
-import java.time.Period;
+import org.openxava.annotations.Required;
+import proyecto.com.Razonamiento_A_B.enums.Sexo;
 
 @MappedSuperclass
 public abstract class Persona {
 
+    @Required
     @NotBlank(message = "Los nombres son obligatorios")
-    @Size(max = 80, message = "Los nombres no deben superar 80 caracteres")
     @Column(length = 80, nullable = false)
     private String nombres;
 
+    @Required
     @NotBlank(message = "Los apellidos son obligatorios")
-    @Size(max = 80, message = "Los apellidos no deben superar 80 caracteres")
     @Column(length = 80, nullable = false)
     private String apellidos;
 
+    @Required
+    @NotBlank(message = "La identificación es obligatoria")
+    @Column(length = 30, nullable = false, unique = true)
+    private String identificacion;
+
+    @Required
     @NotNull(message = "La fecha de nacimiento es obligatoria")
-    @Past(message = "La fecha de nacimiento debe ser anterior a la fecha actual")
     @Column(nullable = false)
     private LocalDate fechaNacimiento;
 
+    @Required
     @NotNull(message = "El sexo es obligatorio")
     @Enumerated(EnumType.STRING)
     @Column(length = 1, nullable = false)
@@ -44,12 +48,34 @@ public abstract class Persona {
     }
 
     public String obtenerNombreCompleto() {
-        String nombresTexto = nombres == null ? "" : nombres.trim();
-        String apellidosTexto = apellidos == null ? "" : apellidos.trim();
-        return (nombresTexto + " " + apellidosTexto).trim();
+        String n = nombres == null ? "" : nombres.trim();
+        String a = apellidos == null ? "" : apellidos.trim();
+        return (n + " " + a).trim();
     }
 
     public abstract String obtenerRolSistema();
+
+    public void registrar() {
+        validarDatosGenerales();
+    }
+
+    protected void validarDatosGenerales() {
+        if (nombres == null || nombres.trim().isEmpty()) {
+            throw new IllegalArgumentException("Debe ingresar los nombres");
+        }
+        if (apellidos == null || apellidos.trim().isEmpty()) {
+            throw new IllegalArgumentException("Debe ingresar los apellidos");
+        }
+        if (identificacion == null || identificacion.trim().isEmpty()) {
+            throw new IllegalArgumentException("Debe ingresar la identificación");
+        }
+        if (fechaNacimiento == null) {
+            throw new IllegalArgumentException("Debe ingresar la fecha de nacimiento");
+        }
+        if (sexo == null) {
+            throw new IllegalArgumentException("Debe seleccionar sexo F o M");
+        }
+    }
 
     public String getNombres() {
         return nombres;
@@ -65,6 +91,14 @@ public abstract class Persona {
 
     public void setApellidos(String apellidos) {
         this.apellidos = apellidos;
+    }
+
+    public String getIdentificacion() {
+        return identificacion;
+    }
+
+    public void setIdentificacion(String identificacion) {
+        this.identificacion = identificacion;
     }
 
     public LocalDate getFechaNacimiento() {

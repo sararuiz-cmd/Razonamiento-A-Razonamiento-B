@@ -16,29 +16,35 @@ public abstract class Persona {
 
     @Required
     @NotBlank(message = "Los nombres son obligatorios")
-    @Column(length = 80, nullable = false)
+    @Column(name = "nombres", nullable = false, length = 120)
     private String nombres;
 
     @Required
     @NotBlank(message = "Los apellidos son obligatorios")
-    @Column(length = 80, nullable = false)
+    @Column(name = "apellidos", nullable = false, length = 120)
     private String apellidos;
 
     @Required
-    @NotBlank(message = "La identificación es obligatoria")
-    @Column(length = 30, nullable = false, unique = true)
-    private String identificacion;
+    @NotNull(message = "La fecha de nacimiento es obligatoria")
+    @Column(name = "fecha_nacimiento", nullable = false)
+    private LocalDate fechaNacimiento;
 
     @Required
-    @NotNull(message = "La fecha de nacimiento es obligatoria")
-    @Column(nullable = false)
-    private LocalDate fechaNacimiento;
+    @NotBlank(message = "La identificación es obligatoria")
+    @Column(name = "identificacion", nullable = false, unique = true, length = 50)
+    private String identificacion;
 
     @Required
     @NotNull(message = "El sexo es obligatorio")
     @Enumerated(EnumType.STRING)
-    @Column(length = 1, nullable = false)
+    @Column(name = "sexo", nullable = false, length = 1)
     private Sexo sexo;
+
+    public String obtenerNombreCompleto() {
+        String nom = nombres == null ? "" : nombres.trim();
+        String ape = apellidos == null ? "" : apellidos.trim();
+        return (nom + " " + ape).trim();
+    }
 
     public int calcularEdad() {
         if (fechaNacimiento == null) {
@@ -47,33 +53,30 @@ public abstract class Persona {
         return Period.between(fechaNacimiento, LocalDate.now()).getYears();
     }
 
-    public String obtenerNombreCompleto() {
-        String n = nombres == null ? "" : nombres.trim();
-        String a = apellidos == null ? "" : apellidos.trim();
-        return (n + " " + a).trim();
-    }
-
     public abstract String obtenerRolSistema();
 
     public void registrar() {
-        validarDatosGenerales();
+        validarDatosPersona();
     }
 
-    protected void validarDatosGenerales() {
+    protected void validarDatosPersona() {
         if (nombres == null || nombres.trim().isEmpty()) {
-            throw new IllegalArgumentException("Debe ingresar los nombres");
+            throw new IllegalArgumentException("Los nombres son obligatorios");
         }
         if (apellidos == null || apellidos.trim().isEmpty()) {
-            throw new IllegalArgumentException("Debe ingresar los apellidos");
+            throw new IllegalArgumentException("Los apellidos son obligatorios");
         }
         if (identificacion == null || identificacion.trim().isEmpty()) {
-            throw new IllegalArgumentException("Debe ingresar la identificación");
+            throw new IllegalArgumentException("La identificación es obligatoria");
         }
         if (fechaNacimiento == null) {
-            throw new IllegalArgumentException("Debe ingresar la fecha de nacimiento");
+            throw new IllegalArgumentException("La fecha de nacimiento es obligatoria");
+        }
+        if (fechaNacimiento.isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("La fecha de nacimiento no puede ser futura");
         }
         if (sexo == null) {
-            throw new IllegalArgumentException("Debe seleccionar sexo F o M");
+            throw new IllegalArgumentException("El sexo debe ser F o M");
         }
     }
 
@@ -93,20 +96,20 @@ public abstract class Persona {
         this.apellidos = apellidos;
     }
 
-    public String getIdentificacion() {
-        return identificacion;
-    }
-
-    public void setIdentificacion(String identificacion) {
-        this.identificacion = identificacion;
-    }
-
     public LocalDate getFechaNacimiento() {
         return fechaNacimiento;
     }
 
     public void setFechaNacimiento(LocalDate fechaNacimiento) {
         this.fechaNacimiento = fechaNacimiento;
+    }
+
+    public String getIdentificacion() {
+        return identificacion;
+    }
+
+    public void setIdentificacion(String identificacion) {
+        this.identificacion = identificacion;
     }
 
     public Sexo getSexo() {

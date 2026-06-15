@@ -7,6 +7,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
+import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
 import org.openxava.annotations.Hidden;
 import org.openxava.annotations.Required;
@@ -14,36 +15,23 @@ import org.openxava.annotations.Tab;
 import org.openxava.annotations.View;
 
 @Entity
-@View(name = "Datos del evaluador", members =
-        "nombres, apellidos; " +
-                "identificacion, sexo; " +
-                "fechaNacimiento, profesion"
-)
-@Tab(properties = "identificacion, nombres, apellidos, sexo, profesion")
+@Table(name = "evaluadores")
+@View(members =
+        "Datos personales { nombres; apellidos; identificacion; fechaNacimiento; sexo; } " +
+                "Datos profesionales { profesion; }")
+@Tab(properties = "idEvaluador,nombres,apellidos,identificacion,fechaNacimiento,sexo,profesion")
 public class Evaluador extends Persona {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Hidden
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_evaluador")
     private Integer idEvaluador;
 
     @Required
     @NotBlank(message = "La profesión es obligatoria")
-    @Column(length = 80, nullable = false)
+    @Column(name = "profesion", nullable = false, length = 120)
     private String profesion;
-
-    @PrePersist
-    @PreUpdate
-    private void validarAntesDeGuardar() {
-        registrar();
-        validarCredenciales();
-    }
-
-    public void validarCredenciales() {
-        if (profesion == null || profesion.trim().isEmpty()) {
-            throw new IllegalStateException("El evaluador debe tener una profesión registrada");
-        }
-    }
 
     @Override
     public String obtenerRolSistema() {
@@ -52,7 +40,19 @@ public class Evaluador extends Persona {
 
     @Override
     public void registrar() {
-        super.registrar();
+        validarCredenciales();
+    }
+
+    public void validarCredenciales() {
+        validarDatosPersona();
+        if (profesion == null || profesion.trim().isEmpty()) {
+            throw new IllegalArgumentException("La profesión es obligatoria");
+        }
+    }
+
+    @PrePersist
+    @PreUpdate
+    private void validarRegistro() {
         validarCredenciales();
     }
 

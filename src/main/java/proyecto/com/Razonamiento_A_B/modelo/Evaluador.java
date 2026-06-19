@@ -5,40 +5,55 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
-
 import org.openxava.annotations.Hidden;
+import org.openxava.annotations.Required;
 import org.openxava.annotations.Tab;
 import org.openxava.annotations.View;
 
 @Entity
 @Table(name = "evaluadores")
 @View(members =
-        "Datos del evaluador {" +
-                "nombres, apellidos;" +
-                "fechaNacimiento, sexo;" +
-                "profesion" +
-                "}"
-)
-@Tab(properties = "idEvaluador, nombres, apellidos, profesion")
+        "Datos personales { nombres; apellidos; identificacion; fechaNacimiento; sexo; } " +
+                "Datos profesionales { profesion; }")
+@Tab(properties = "idEvaluador,nombres,apellidos,identificacion,fechaNacimiento,sexo,profesion")
 public class Evaluador extends Persona {
 
     @Id
+    @Hidden
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_evaluador")
-    @Hidden
     private Integer idEvaluador;
 
+    @Required
     @NotBlank(message = "La profesión es obligatoria")
-    @Size(max = 100, message = "La profesión no debe superar 100 caracteres")
-    @Column(length = 100, nullable = false)
+    @Column(name = "profesion", nullable = false, length = 120)
     private String profesion;
 
     @Override
     public String obtenerRolSistema() {
-        return "Evaluador";
+        return "EVALUADOR";
+    }
+
+    @Override
+    public void registrar() {
+        validarCredenciales();
+    }
+
+    public void validarCredenciales() {
+        validarDatosPersona();
+        if (profesion == null || profesion.trim().isEmpty()) {
+            throw new IllegalArgumentException("La profesión es obligatoria");
+        }
+    }
+
+    @PrePersist
+    @PreUpdate
+    private void validarRegistro() {
+        validarCredenciales();
     }
 
     public Integer getIdEvaluador() {

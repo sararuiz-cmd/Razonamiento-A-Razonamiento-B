@@ -9,8 +9,9 @@
 			  maxIdle="5"
 			  maxWaitMillis="10000"
 			  username="postgres"
-			  password="2208sara"
+			  password="123"
 			  driverClassName="org.postgresql.Driver"
 			  url="jdbc:postgresql://localhost:5432/razonamiento_db"/>
+
 
 </Context>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal del Evaluado - Razonamiento A y B</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main class="contenedor">
+    <section id="loginCard" class="card">
+        <h1>Razonamiento A y B</h1>
+        <p class="subtitulo">Ingrese sus credenciales para iniciar el test asignado.</p>
+
+        <form id="loginForm">
+            <label for="usuario">Usuario</label>
+            <input type="text" id="usuario" name="usuario" autocomplete="username" required>
+
+            <label for="contrasena">Contraseña</label>
+            <input type="password" id="contrasena" name="contrasena" autocomplete="current-password" required>
+
+            <button type="submit">Entrar al test</button>
+        </form>
+        <p id="loginMensaje" class="mensaje"></p>
+    </section>
+
+    <section id="testCard" class="card oculto">
+        <div class="cabecera-test">
+            <div>
+                <h1 id="nombreTest">Test</h1>
+                <p id="datosAplicacion" class="subtitulo"></p>
+            </div>
+            <div class="reloj">
+                <span>Tiempo</span>
+                <strong id="contador">00:00</strong>
+            </div>
+        </div>
+
+        <article class="instrucciones">
+            <h2>Instrucciones</h2>
+            <p id="instruccionesTest"></p>
+        </article>
+
+        <form id="testForm">
+            <div id="itemsContenedor"></div>
+            <button type="submit" class="finalizar">Finalizar test</button>
+        </form>
+        <p id="testMensaje" class="mensaje"></p>
+    </section>
+
+    <section id="resumenCard" class="card oculto">
+        <h1>Resumen final</h1>
+        <pre id="resumenFinal"></pre>
+        <button id="salirBtn">Cerrar sesión</button>
+    </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

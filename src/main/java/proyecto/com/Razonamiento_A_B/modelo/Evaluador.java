@@ -1,46 +1,66 @@
 package proyecto.com.Razonamiento_A_B.modelo;
 
-import org.openxava.annotations.Hidden;
-import org.openxava.annotations.Tab;
-import org.openxava.annotations.View;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
+import org.openxava.annotations.Hidden;
+import org.openxava.annotations.Required;
+import org.openxava.annotations.Tab;
+import org.openxava.annotations.View;
 
 @Entity
 @Table(name = "evaluadores")
-@View(name = "Simple", members =
-        "Datos personales { nombres, apellidos; fechaNacimiento, sexo; profesion }"
-)
-@Tab(properties = "nombres, apellidos, sexo, profesion")
+@View(members =
+        "Datos personales { nombres; apellidos; identificacion; fechaNacimiento; sexo; } " +
+                "Datos profesionales { profesion; }")
+@Tab(properties = "idEvaluador,nombres,apellidos,identificacion,fechaNacimiento,sexo,profesion")
 public class Evaluador extends Persona {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Hidden
-    private int idEvaluador;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_evaluador")
+    private Integer idEvaluador;
 
+    @Required
     @NotBlank(message = "La profesión es obligatoria")
-    @Size(max = 80, message = "La profesión no debe superar 80 caracteres")
-    @Column(length = 80, nullable = false)
+    @Column(name = "profesion", nullable = false, length = 120)
     private String profesion;
 
     @Override
     public String obtenerRolSistema() {
-        return "Evaluador";
+        return "EVALUADOR";
     }
 
-    public int getIdEvaluador() {
+    @Override
+    public void registrar() {
+        validarCredenciales();
+    }
+
+    public void validarCredenciales() {
+        validarDatosPersona();
+        if (profesion == null || profesion.trim().isEmpty()) {
+            throw new IllegalArgumentException("La profesión es obligatoria");
+        }
+    }
+
+    @PrePersist
+    @PreUpdate
+    private void validarRegistro() {
+        validarCredenciales();
+    }
+
+    public Integer getIdEvaluador() {
         return idEvaluador;
     }
 
-    public void setIdEvaluador(int idEvaluador) {
+    public void setIdEvaluador(Integer idEvaluador) {
         this.idEvaluador = idEvaluador;
     }
 

@@ -1,5 +1,10 @@
 package proyecto.com.Razonamiento_A_B.modelo;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.CascadeType;
@@ -27,6 +32,11 @@ import org.openxava.annotations.View;
                 "Instrucciones { instruccionesFormaA; instruccionesFormaB; } " +
                 "Ítems { items; }")
 @Tab(properties = "idTest,nombre,tiempoFormaA,tiempoFormaB")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString(exclude = "items")
 public class TestRazonamiento {
 
     @Id

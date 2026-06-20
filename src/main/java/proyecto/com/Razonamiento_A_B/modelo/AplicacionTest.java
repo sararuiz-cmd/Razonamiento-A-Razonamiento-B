@@ -1,13 +1,14 @@
 package proyecto.com.Razonamiento_A_B.modelo;
 
-import org.openxava.annotations.DescriptionsList;
-import org.openxava.annotations.Hidden;
-import org.openxava.annotations.ListProperties;
-import org.openxava.annotations.ReadOnly;
-import org.openxava.annotations.Tab;
-import org.openxava.annotations.View;
-import proyecto.com.Razonamiento_A_B.enums.EstadoAplicacion;
-
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -17,109 +18,167 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
+import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
+import org.openxava.annotations.DescriptionsList;
+import org.openxava.annotations.Hidden;
+import org.openxava.annotations.ListProperties;
+import org.openxava.annotations.Required;
+import org.openxava.annotations.Tab;
+import org.openxava.annotations.View;
+import proyecto.com.Razonamiento_A_B.enums.EstadoAplicacion;
+import proyecto.com.Razonamiento_A_B.enums.OpcionRespuesta;
 
 @Entity
-@Table(name = "aplicaciones_test")
+@Table(name = "aplicaciontest")
 @View(members =
-        "Datos de aplicación { evaluado; evaluador; testRazonamiento } " +
-                "Control de estado { estado; fechaInicio; fechaFin } " +
-                "Respuestas { respuestasMarcadas } " +
-                "Resultado { resultado }"
-)
-@Tab(properties = "evaluado.nombres, evaluado.apellidos, evaluador.nombres, evaluador.apellidos, testRazonamiento.nombre, estado, fechaInicio, fechaFin")
+        "Datos de aplicación { evaluado; evaluador; test; estado; } " +
+                "Tiempo { fechaInicio; fechaFin; } " +
+                "Respuestas { respuestasMarcadas; }")
+@Tab(properties = "idAplicacion,evaluado.obtenerNombreCompleto,evaluador.obtenerNombreCompleto,test.nombre,estado,fechaInicio,fechaFin")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString(exclude = {"evaluado", "evaluador", "test", "respuestasMarcadas"})
 public class AplicacionTest {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Hidden
-    private int idAplicacion;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "idaplicacion")
+    private Integer idAplicacion;
 
+    @Required
     @NotNull(message = "El estado de la aplicación es obligatorio")
     @Enumerated(EnumType.STRING)
-    @Column(length = 30, nullable = false)
+    @Column(name = "estado", nullable = false, length = 30)
     private EstadoAplicacion estado = EstadoAplicacion.PENDIENTE;
 
-    @Column
-    @ReadOnly
+    @Column(name = "fechainicio")
     private LocalDateTime fechaInicio;
 
-    @Column
-    @ReadOnly
+    @Column(name = "fechafin")
     private LocalDateTime fechaFin;
 
-    @NotNull(message = "El evaluado es obligatorio")
+    @Required
+    @DescriptionsList(descriptionProperties = "nombres,apellidos")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_evaluado", nullable = false)
-    @DescriptionsList(descriptionProperties = "nombres, apellidos")
+    @JoinColumn(name = "evaluado_id_evaluado", nullable = false)
     private Evaluado evaluado;
 
-    @NotNull(message = "El evaluador es obligatorio")
+    @Required
+    @DescriptionsList(descriptionProperties = "nombres,apellidos")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_evaluador", nullable = false)
-    @DescriptionsList(descriptionProperties = "nombres, apellidos")
+    @JoinColumn(name = "evaluador_id_evaluador", nullable = false)
     private Evaluador evaluador;
 
-    @NotNull(message = "El test de razonamiento es obligatorio")
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_test", nullable = false)
+    @Required
     @DescriptionsList(descriptionProperties = "nombre")
-    private TestRazonamiento testRazonamiento;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "testrazonamiento_id_test", nullable = false)
+    private TestRazonamiento test;
 
     @OneToMany(mappedBy = "aplicacionTest", cascade = CascadeType.ALL, orphanRemoval = true)
-    @ListProperties("itemRazonamiento.numero, itemRazonamiento.subFactor, opcionSeleccionada, estadoRespuesta")
-    private Collection<RespuestaMarcada> respuestasMarcadas = new ArrayList<>();
+    @ListProperties("numeroItem,respuestaSeleccionada,estadoRespuesta,fechaRegistro")
+    private List<RespuestaMarcada> respuestasMarcadas = new ArrayList<>();
 
-    public void iniciarFormaA() {
-        if (estado != EstadoAplicacion.PENDIENTE) {
-            throw new IllegalStateException("La Forma A solo puede iniciar cuando la aplicación está pendiente.");
+    public void iniciarAplicacion() {
+        validarDatosBase();
+        if (estado == EstadoAplicacion.FINALIZADA) {
+            throw new IllegalStateException("No se puede iniciar una aplicación finalizada");
+        }
+        if (estado == EstadoAplicacion.CANCELADA) {
+            throw new IllegalStateException("No se puede iniciar una aplicación cancelada");
         }
         fechaInicio = LocalDateTime.now();
-        estado = EstadoAplicacion.EN_FORMA_A;
+        fechaFin = null;
+        estado = EstadoAplicacion.EN_CURSO;
     }
 
-    public void finalizarFormaA() {
-        if (estado != EstadoAplicacion.EN_FORMA_A) {
-            throw new IllegalStateException("La Forma A solo puede finalizar si está en progreso.");
+    public void registrarRespuesta(String respuesta, int numeroItem) {
+        if (estado != EstadoAplicacion.EN_CURSO) {
+            throw new IllegalStateException("Solo se pueden registrar respuestas cuando la aplicación está en curso");
         }
-        estado = EstadoAplicacion.FINALIZADO_FORMA_A;
-    }
+        if (numeroItem <= 0) {
+            throw new IllegalArgumentException("El número del ítem debe ser mayor a cero");
+        }
+        OpcionRespuesta opcion = convertirRespuesta(respuesta);
 
-    public void iniciarFormaB() {
-        if (estado != EstadoAplicacion.FINALIZADO_FORMA_A) {
-            throw new IllegalStateException("La Forma B solo puede iniciar después de finalizar la Forma A.");
+        RespuestaMarcada encontrada = null;
+        for (RespuestaMarcada marcada : respuestasMarcadas) {
+            if (marcada.getNumeroItem() != null && marcada.getNumeroItem() == numeroItem) {
+                encontrada = marcada;
+                break;
+            }
         }
-        estado = EstadoAplicacion.EN_FORMA_B;
+
+        if (encontrada == null) {
+            encontrada = new RespuestaMarcada();
+            encontrada.setAplicacionTest(this);
+            encontrada.setNumeroItem(numeroItem);
+            respuestasMarcadas.add(encontrada);
+        }
+        encontrada.setRespuestaSeleccionada(opcion);
+        encontrada.marcarRespondida();
     }
 
     public void finalizarAplicacion() {
-        if (estado != EstadoAplicacion.EN_FORMA_B && estado != EstadoAplicacion.FINALIZADO_FORMA_A) {
-            throw new IllegalStateException("La aplicación solo puede finalizar después de avanzar en el proceso del test.");
+        if (estado != EstadoAplicacion.EN_CURSO && estado != EstadoAplicacion.PENDIENTE) {
+            throw new IllegalStateException("La aplicación no puede finalizarse desde el estado actual");
         }
         fechaFin = LocalDateTime.now();
-        estado = EstadoAplicacion.FINALIZADO;
+        estado = EstadoAplicacion.FINALIZADA;
     }
 
-    public int obtenerCantidadRespuestasMarcadas() {
-        if (respuestasMarcadas == null) {
+    public int obtenerTiempoEmpleado() {
+        if (fechaInicio == null) {
             return 0;
         }
-        return respuestasMarcadas.size();
+        LocalDateTime fin = fechaFin == null ? LocalDateTime.now() : fechaFin;
+        return (int) Duration.between(fechaInicio, fin).toMinutes();
     }
 
-    public int getIdAplicacion() {
+    @PrePersist
+    private void prepararRegistro() {
+        if (estado == null) {
+            estado = EstadoAplicacion.PENDIENTE;
+        }
+        validarDatosBase();
+    }
+
+    private void validarDatosBase() {
+        if (evaluado == null) {
+            throw new IllegalArgumentException("Debe seleccionar un evaluado");
+        }
+        if (evaluador == null) {
+            throw new IllegalArgumentException("Debe seleccionar un evaluador");
+        }
+        if (test == null) {
+            throw new IllegalArgumentException("Debe seleccionar un test");
+        }
+    }
+
+    private OpcionRespuesta convertirRespuesta(String respuesta) {
+        if (respuesta == null || respuesta.trim().isEmpty()) {
+            throw new IllegalArgumentException("La respuesta seleccionada es obligatoria");
+        }
+        try {
+            return OpcionRespuesta.valueOf(respuesta.trim().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException("La respuesta debe ser A, B, C o D");
+        }
+    }
+
+    public Integer getIdAplicacion() {
         return idAplicacion;
     }
 
-    public void setIdAplicacion(int idAplicacion) {
+    public void setIdAplicacion(Integer idAplicacion) {
         this.idAplicacion = idAplicacion;
     }
 
@@ -163,20 +222,19 @@ public class AplicacionTest {
         this.evaluador = evaluador;
     }
 
-    public TestRazonamiento getTestRazonamiento() {
-        return testRazonamiento;
+    public TestRazonamiento getTest() {
+        return test;
     }
 
-    public void setTestRazonamiento(TestRazonamiento testRazonamiento) {
-        this.testRazonamiento = testRazonamiento;
+    public void setTest(TestRazonamiento test) {
+        this.test = test;
     }
 
-    public Collection<RespuestaMarcada> getRespuestasMarcadas() {
+    public List<RespuestaMarcada> getRespuestasMarcadas() {
         return respuestasMarcadas;
     }
 
-    public void setRespuestasMarcadas(Collection<RespuestaMarcada> respuestasMarcadas) {
+    public void setRespuestasMarcadas(List<RespuestaMarcada> respuestasMarcadas) {
         this.respuestasMarcadas = respuestasMarcadas;
     }
-
 }

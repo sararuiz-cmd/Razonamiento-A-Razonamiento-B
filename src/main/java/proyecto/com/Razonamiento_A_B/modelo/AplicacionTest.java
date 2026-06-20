@@ -19,6 +19,9 @@ import javax.persistence.OneToMany;
 import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
+
+import lombok.Getter;
+import lombok.Setter;
 import org.openxava.annotations.DescriptionsList;
 import org.openxava.annotations.Hidden;
 import org.openxava.annotations.ListProperties;
@@ -28,6 +31,8 @@ import org.openxava.annotations.View;
 import proyecto.com.Razonamiento_A_B.enums.EstadoAplicacion;
 import proyecto.com.Razonamiento_A_B.enums.OpcionRespuesta;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "aplicaciontest")
 @View(members =
@@ -164,67 +169,4 @@ public class AplicacionTest {
         }
     }
 
-    public Integer getIdAplicacion() {
-        return idAplicacion;
-    }
-
-    public void setIdAplicacion(Integer idAplicacion) {
-        this.idAplicacion = idAplicacion;
-    }
-
-    public EstadoAplicacion getEstado() {
-        return estado;
-    }
-
-    public void setEstado(EstadoAplicacion estado) {
-        this.estado = estado;
-    }
-
-    public LocalDateTime getFechaInicio() {
-        return fechaInicio;
-    }
-
-    public void setFechaInicio(LocalDateTime fechaInicio) {
-        this.fechaInicio = fechaInicio;
-    }
-
-    public LocalDateTime getFechaFin() {
-        return fechaFin;
-    }
-
-    public void setFechaFin(LocalDateTime fechaFin) {
-        this.fechaFin = fechaFin;
-    }
-
-    public Evaluado getEvaluado() {
-        return evaluado;
-    }
-
-    public void setEvaluado(Evaluado evaluado) {
-        this.evaluado = evaluado;
-    }
-
-    public Evaluador getEvaluador() {
-        return evaluador;
-    }
-
-    public void setEvaluador(Evaluador evaluador) {
-        this.evaluador = evaluador;
-    }
-
-    public TestRazonamiento getTest() {
-        return test;
-    }
-
-    public void setTest(TestRazonamiento test) {
-        this.test = test;
-    }
-
-    public List<RespuestaMarcada> getRespuestasMarcadas() {
-        return respuestasMarcadas;
-    }
-
-    public void setRespuestasMarcadas(List<RespuestaMarcada> respuestasMarcadas) {
-        this.respuestasMarcadas = respuestasMarcadas;
-    }
 }

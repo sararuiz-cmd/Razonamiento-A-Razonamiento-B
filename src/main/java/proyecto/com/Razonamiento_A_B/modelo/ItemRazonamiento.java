@@ -1,5 +1,10 @@
 package proyecto.com.Razonamiento_A_B.modelo;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -36,6 +41,11 @@ import proyecto.com.Razonamiento_A_B.enums.TipoItem;
                 "Opciones { opcionA; opcionB; opcionC; opcionD; respuestaCorrecta; } " +
                 "Clasificación { subFactor; tipoItem; }")
 @Tab(properties = "idItem,test.nombre,numero,enunciado,respuestaCorrecta,subFactor,tipoItem")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString(exclude = "test")
 public class ItemRazonamiento {
 
     @Id

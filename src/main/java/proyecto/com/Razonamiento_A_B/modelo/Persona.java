@@ -1,5 +1,10 @@
 package proyecto.com.Razonamiento_A_B.modelo;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import java.time.LocalDate;
 import java.time.Period;
 import javax.persistence.Column;
@@ -12,6 +17,11 @@ import org.openxava.annotations.Required;
 import proyecto.com.Razonamiento_A_B.enums.Sexo;
 
 @MappedSuperclass
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
 public abstract class Persona {
 
     @Required

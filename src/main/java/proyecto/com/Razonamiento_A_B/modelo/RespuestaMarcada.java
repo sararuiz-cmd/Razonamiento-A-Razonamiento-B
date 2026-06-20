@@ -1,81 +1,92 @@
 package proyecto.com.Razonamiento_A_B.modelo;
 
-import org.openxava.annotations.DescriptionsList;
-import org.openxava.annotations.Hidden;
-import org.openxava.annotations.Tab;
-import org.openxava.annotations.View;
-import proyecto.com.Razonamiento_A_B.enums.EstadoRespuesta;
-import proyecto.com.Razonamiento_A_B.enums.OpcionRespuesta;
-
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+import org.openxava.annotations.DescriptionsList;
+import org.openxava.annotations.Required;
+import org.openxava.annotations.Tab;
+import org.openxava.annotations.View;
+import proyecto.com.Razonamiento_A_B.enums.EstadoRespuesta;
+import proyecto.com.Razonamiento_A_B.enums.OpcionRespuesta;
 
 @Entity
-@Table(name = "respuestas_marcadas")
-@View(members =
-        "Aplicación { aplicacionTest } " +
-                "Respuesta { itemRazonamiento; opcionSeleccionada; estadoRespuesta }"
-)
-@Tab(properties = "aplicacionTest.idAplicacion, itemRazonamiento.numero, itemRazonamiento.subFactor, opcionSeleccionada, estadoRespuesta")
+@Table(name = "aplicacion_respuestas")
+@IdClass(RespuestaMarcada.RespuestaMarcadaId.class)
+@View(members = "aplicacionTest; numeroItem; respuestaSeleccionada; estadoRespuesta; fechaRegistro")
+@Tab(properties = "aplicacionTest.idAplicacion,numeroItem,respuestaSeleccionada,estadoRespuesta,fechaRegistro")
 public class RespuestaMarcada {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Hidden
-    private int idRespuesta;
-
-    @NotNull(message = "La aplicación del test es obligatoria")
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_aplicacion", nullable = false)
+    @Required
     @DescriptionsList(descriptionProperties = "idAplicacion")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "aplicaciontest_idaplicacion", nullable = false)
     private AplicacionTest aplicacionTest;
 
-    @NotNull(message = "El ítem de razonamiento es obligatorio")
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_item", nullable = false)
-    @DescriptionsList(descriptionProperties = "numero, enunciado")
-    private ItemRazonamiento itemRazonamiento;
+    @Id
+    @Required
+    @Min(value = 1, message = "El número del ítem debe ser mayor a cero")
+    @Column(name = "numero_item", nullable = false)
+    private Integer numeroItem;
 
+    @Required
+    @NotNull(message = "La respuesta seleccionada es obligatoria")
     @Enumerated(EnumType.STRING)
-    @Column(length = 1)
-    private OpcionRespuesta opcionSeleccionada;
+    @Column(name = "respuesta_seleccionada", nullable = false, length = 1)
+    private OpcionRespuesta respuestaSeleccionada;
 
-    @NotNull(message = "El estado de respuesta es obligatorio")
+    @Required
+    @NotNull(message = "El estado de la respuesta es obligatorio")
     @Enumerated(EnumType.STRING)
-    @Column(length = 20, nullable = false)
-    private EstadoRespuesta estadoRespuesta = EstadoRespuesta.OMITIDA;
+    @Column(name = "estado_respuesta", nullable = false, length = 20)
+    private EstadoRespuesta estadoRespuesta = EstadoRespuesta.RESPONDIDA;
+
+    @Column(name = "fecha_registro")
+    private LocalDateTime fechaRegistro;
+
+    public void marcarRespondida() {
+        estadoRespuesta = EstadoRespuesta.RESPONDIDA;
+        fechaRegistro = LocalDateTime.now();
+    }
+
+    public void marcarOmitida() {
+        estadoRespuesta = EstadoRespuesta.OMITIDA;
+        fechaRegistro = LocalDateTime.now();
+    }
 
     @PrePersist
     @PreUpdate
-    public void actualizarEstadoRespuesta() {
-        estadoRespuesta = opcionSeleccionada == null ? EstadoRespuesta.OMITIDA : EstadoRespuesta.RESPONDIDA;
-    }
-
-    public boolean esCorrecta() {
-        if (itemRazonamiento == null || itemRazonamiento.getRespuestaCorrecta() == null || opcionSeleccionada == null) {
-            return false;
+    private void validarRegistro() {
+        if (aplicacionTest == null) {
+            throw new IllegalArgumentException("La respuesta debe pertenecer a una aplicación");
         }
-        return opcionSeleccionada == itemRazonamiento.getRespuestaCorrecta();
-    }
-
-    public int getIdRespuesta() {
-        return idRespuesta;
-    }
-
-    public void setIdRespuesta(int idRespuesta) {
-        this.idRespuesta = idRespuesta;
+        if (numeroItem == null || numeroItem <= 0) {
+            throw new IllegalArgumentException("El número del ítem debe ser mayor a cero");
+        }
+        if (respuestaSeleccionada == null) {
+            throw new IllegalArgumentException("La respuesta seleccionada es obligatoria");
+        }
+        if (estadoRespuesta == null) {
+            estadoRespuesta = EstadoRespuesta.RESPONDIDA;
+        }
+        if (fechaRegistro == null) {
+            fechaRegistro = LocalDateTime.now();
+        }
     }
 
     public AplicacionTest getAplicacionTest() {
@@ -86,20 +97,20 @@ public class RespuestaMarcada {
         this.aplicacionTest = aplicacionTest;
     }
 
-    public ItemRazonamiento getItemRazonamiento() {
-        return itemRazonamiento;
+    public Integer getNumeroItem() {
+        return numeroItem;
     }
 
-    public void setItemRazonamiento(ItemRazonamiento itemRazonamiento) {
-        this.itemRazonamiento = itemRazonamiento;
+    public void setNumeroItem(Integer numeroItem) {
+        this.numeroItem = numeroItem;
     }
 
-    public OpcionRespuesta getOpcionSeleccionada() {
-        return opcionSeleccionada;
+    public OpcionRespuesta getRespuestaSeleccionada() {
+        return respuestaSeleccionada;
     }
 
-    public void setOpcionSeleccionada(OpcionRespuesta opcionSeleccionada) {
-        this.opcionSeleccionada = opcionSeleccionada;
+    public void setRespuestaSeleccionada(OpcionRespuesta respuestaSeleccionada) {
+        this.respuestaSeleccionada = respuestaSeleccionada;
     }
 
     public EstadoRespuesta getEstadoRespuesta() {
@@ -108,5 +119,56 @@ public class RespuestaMarcada {
 
     public void setEstadoRespuesta(EstadoRespuesta estadoRespuesta) {
         this.estadoRespuesta = estadoRespuesta;
+    }
+
+    public LocalDateTime getFechaRegistro() {
+        return fechaRegistro;
+    }
+
+    public void setFechaRegistro(LocalDateTime fechaRegistro) {
+        this.fechaRegistro = fechaRegistro;
+    }
+
+    public static class RespuestaMarcadaId implements Serializable {
+        private Integer aplicacionTest;
+        private Integer numeroItem;
+
+        public RespuestaMarcadaId() {
+        }
+
+        public RespuestaMarcadaId(Integer aplicacionTest, Integer numeroItem) {
+            this.aplicacionTest = aplicacionTest;
+            this.numeroItem = numeroItem;
+        }
+
+        public Integer getAplicacionTest() {
+            return aplicacionTest;
+        }
+
+        public void setAplicacionTest(Integer aplicacionTest) {
+            this.aplicacionTest = aplicacionTest;
+        }
+
+        public Integer getNumeroItem() {
+            return numeroItem;
+        }
+
+        public void setNumeroItem(Integer numeroItem) {
+            this.numeroItem = numeroItem;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof RespuestaMarcadaId)) return false;
+            RespuestaMarcadaId that = (RespuestaMarcadaId) o;
+            return Objects.equals(aplicacionTest, that.aplicacionTest)
+                    && Objects.equals(numeroItem, that.numeroItem);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(aplicacionTest, numeroItem);
+        }
     }
 }

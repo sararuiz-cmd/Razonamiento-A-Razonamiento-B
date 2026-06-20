@@ -1,7 +1,17 @@
 package proyecto.com.Razonamiento_A_B.modelo;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -14,10 +24,12 @@ import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+
 import org.openxava.annotations.Hidden;
 import org.openxava.annotations.Required;
 import org.openxava.annotations.Tab;
 import org.openxava.annotations.View;
+
 import proyecto.com.Razonamiento_A_B.enums.NivelAcademico;
 
 @Entity
@@ -25,8 +37,14 @@ import proyecto.com.Razonamiento_A_B.enums.NivelAcademico;
 @View(members =
         "Datos personales { nombres; apellidos; identificacion; fechaNacimiento; sexo; } " +
                 "Datos académicos { nivelAcademico; } " +
-                "Acceso al portal { usuario; contrasena; }")
-@Tab(properties = "idEvaluado,nombres,apellidos,identificacion,usuario,fechaNacimiento,sexo,nivelAcademico")
+                "Acceso al portal { usuario; contrasena; }"
+)
+@Tab(properties = "idEvaluado,nombres,apellidos,identificacion,usuario,contrasena,fechaNacimiento,sexo,nivelAcademico")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString(callSuper = true, exclude = "contrasena")
 public class Evaluado extends Persona {
 
     private static final int EDAD_MINIMA = 14;
@@ -45,12 +63,12 @@ public class Evaluado extends Persona {
 
     @Required
     @NotBlank(message = "El usuario del evaluado es obligatorio")
-    @Column(name = "usuario", length = 50, unique = true)
+    @Column(name = "usuario", nullable = false, length = 50, unique = true)
     private String usuario;
 
     @Required
     @NotBlank(message = "La contraseña del evaluado es obligatoria")
-    @Column(name = "contrasena", length = 100)
+    @Column(name = "contrasena", nullable = false, length = 64)
     private String contrasena;
 
     public void actualizar() {
@@ -76,59 +94,71 @@ public class Evaluado extends Persona {
     }
 
     public boolean validarCredenciales(String usuarioIngresado, String contrasenaIngresada) {
-        return usuario != null && contrasena != null
-                && usuario.equalsIgnoreCase(usuarioIngresado == null ? "" : usuarioIngresado.trim())
-                && contrasena.equals(contrasenaIngresada == null ? "" : contrasenaIngresada);
+        String usuarioNormalizado = usuarioIngresado == null ? "" : usuarioIngresado.trim();
+        String contrasenaCifrada = cifrarContrasena(contrasenaIngresada);
+
+        return usuario != null
+                && contrasena != null
+                && usuario.equalsIgnoreCase(usuarioNormalizado)
+                && contrasena.equals(contrasenaCifrada);
     }
 
     @PrePersist
     @PreUpdate
     private void validarRegistro() {
         validarDatosPersona();
+
         if (nivelAcademico == null) {
             throw new IllegalArgumentException("El nivel académico es obligatorio");
         }
+
         if (usuario == null || usuario.trim().isEmpty()) {
             throw new IllegalArgumentException("El usuario del evaluado es obligatorio");
         }
+
         if (contrasena == null || contrasena.trim().isEmpty()) {
             throw new IllegalArgumentException("La contraseña del evaluado es obligatoria");
         }
+
         usuario = usuario.trim();
+        cifrarContrasenaSiEsNecesario();
+
         if (!validarEdad()) {
             throw new IllegalArgumentException("El evaluado debe tener al menos " + EDAD_MINIMA + " años");
         }
     }
 
-    public Integer getIdEvaluado() {
-        return idEvaluado;
+    private void cifrarContrasenaSiEsNecesario() {
+        String valor = contrasena == null ? "" : contrasena.trim();
+
+        if (!esHashSha256(valor)) {
+            contrasena = cifrarContrasena(valor);
+        } else {
+            contrasena = valor;
+        }
     }
 
-    public void setIdEvaluado(Integer idEvaluado) {
-        this.idEvaluado = idEvaluado;
+    private static boolean esHashSha256(String valor) {
+        return valor != null && valor.matches("^[a-fA-F0-9]{64}$");
     }
 
-    public NivelAcademico getNivelAcademico() {
-        return nivelAcademico;
-    }
+    public static String cifrarContrasena(String contrasenaPlano) {
+        try {
+            String valor = contrasenaPlano == null ? "" : contrasenaPlano.trim();
 
-    public void setNivelAcademico(NivelAcademico nivelAcademico) {
-        this.nivelAcademico = nivelAcademico;
-    }
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(valor.getBytes(StandardCharsets.UTF_8));
 
-    public String getUsuario() {
-        return usuario;
-    }
+            StringBuilder resultado = new StringBuilder();
 
-    public void setUsuario(String usuario) {
-        this.usuario = usuario;
-    }
+            for (byte b : hash) {
+                resultado.append(String.format("%02x", b));
+            }
 
-    public String getContrasena() {
-        return contrasena;
-    }
+            return resultado.toString();
 
-    public void setContrasena(String contrasena) {
-        this.contrasena = contrasena;
+        } catch (NoSuchAlgorithmException ex) {
+            throw new IllegalStateException("No se pudo cifrar la contraseña", ex);
+        }
     }
 }

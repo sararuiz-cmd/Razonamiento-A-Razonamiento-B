@@ -19,9 +19,11 @@ import javax.persistence.OneToMany;
 import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
-
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import org.openxava.annotations.DescriptionsList;
 import org.openxava.annotations.Hidden;
 import org.openxava.annotations.ListProperties;
@@ -31,8 +33,11 @@ import org.openxava.annotations.View;
 import proyecto.com.Razonamiento_A_B.enums.EstadoAplicacion;
 import proyecto.com.Razonamiento_A_B.enums.OpcionRespuesta;
 
-@Setter
 @Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString(exclude = {"evaluado", "evaluador", "test", "respuestasMarcadas"})
 @Entity
 @Table(name = "aplicaciontest")
 @View(members =
@@ -168,5 +173,4 @@ public class AplicacionTest {
             throw new IllegalArgumentException("La respuesta debe ser A, B, C o D");
         }
     }
-
 }

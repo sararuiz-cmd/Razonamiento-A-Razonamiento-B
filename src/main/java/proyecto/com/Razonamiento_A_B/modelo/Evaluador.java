@@ -1,5 +1,10 @@
 package proyecto.com.Razonamiento_A_B.modelo;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -20,6 +25,11 @@ import org.openxava.annotations.View;
         "Datos personales { nombres; apellidos; identificacion; fechaNacimiento; sexo; } " +
                 "Datos profesionales { profesion; }")
 @Tab(properties = "idEvaluador,nombres,apellidos,identificacion,fechaNacimiento,sexo,profesion")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString(callSuper = true)
 public class Evaluador extends Persona {
 
     @Id

@@ -17,9 +17,11 @@ import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import org.openxava.annotations.DescriptionsList;
 import org.openxava.annotations.Required;
 import org.openxava.annotations.Tab;
@@ -27,8 +29,11 @@ import org.openxava.annotations.View;
 import proyecto.com.Razonamiento_A_B.enums.EstadoRespuesta;
 import proyecto.com.Razonamiento_A_B.enums.OpcionRespuesta;
 
-@Setter
 @Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString(exclude = "aplicacionTest")
 @Entity
 @Table(name = "aplicacion_respuestas")
 @IdClass(RespuestaMarcada.RespuestaMarcadaId.class)

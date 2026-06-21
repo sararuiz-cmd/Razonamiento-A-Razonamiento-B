@@ -1,10 +1,10 @@
 package proyecto.com.Razonamiento_A_B.modelo;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -14,6 +14,7 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
+
 import org.openxava.annotations.Hidden;
 import org.openxava.annotations.Required;
 import org.openxava.annotations.Tab;
@@ -23,12 +24,12 @@ import org.openxava.annotations.View;
 @Table(name = "evaluadores")
 @View(members =
         "Datos personales { nombres; apellidos; identificacion; fechaNacimiento; sexo; } " +
-                "Datos profesionales { profesion; }")
+                "Datos profesionales { profesion; }"
+)
 @Tab(properties = "idEvaluador,nombres,apellidos,identificacion,fechaNacimiento,sexo,profesion")
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @ToString(callSuper = true)
 public class Evaluador extends Persona {
 
@@ -55,6 +56,7 @@ public class Evaluador extends Persona {
 
     public void validarCredenciales() {
         validarDatosPersona();
+
         if (profesion == null || profesion.trim().isEmpty()) {
             throw new IllegalArgumentException("La profesión es obligatoria");
         }
@@ -64,21 +66,5 @@ public class Evaluador extends Persona {
     @PreUpdate
     private void validarRegistro() {
         validarCredenciales();
-    }
-
-    public Integer getIdEvaluador() {
-        return idEvaluador;
-    }
-
-    public void setIdEvaluador(Integer idEvaluador) {
-        this.idEvaluador = idEvaluador;
-    }
-
-    public String getProfesion() {
-        return profesion;
-    }
-
-    public void setProfesion(String profesion) {
-        this.profesion = profesion;
     }
 }

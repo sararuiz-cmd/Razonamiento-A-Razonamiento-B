@@ -57,9 +57,8 @@ public class RespuestaMarcada {
     @Required
     @NotNull(message = "La respuesta seleccionada es obligatoria")
     @Enumerated(EnumType.STRING)
-    @Column(name = "respuesta_seleccionada", nullable = false, length = 1)
+    @Column(name = "respuesta_seleccionada", nullable = true, length = 1)
     private OpcionRespuesta respuestaSeleccionada;
-
     @Required
     @NotNull(message = "El estado de la respuesta es obligatorio")
     @Enumerated(EnumType.STRING)

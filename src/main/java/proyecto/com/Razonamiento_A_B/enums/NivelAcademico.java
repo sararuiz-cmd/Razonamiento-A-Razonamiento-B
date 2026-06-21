@@ -1,9 +1,9 @@
 package proyecto.com.Razonamiento_A_B.enums;
 
 public enum NivelAcademico {
-    PRIMARIA,
+    PRIMARIA_COMPLETA,
     SECUNDARIA,
     TECNICO,
     UNIVERSITARIO,
-    POSGRADO
+    PROFESIONAL
 }

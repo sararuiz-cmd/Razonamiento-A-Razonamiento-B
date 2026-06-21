@@ -1,5 +1,7 @@
 package proyecto.com.Razonamiento_A_B.modelo;
 
+import proyecto.com.Razonamiento_A_B.enums.OpcionRespuesta;
+
 import java.util.HashMap;
 import java.util.Map;
 

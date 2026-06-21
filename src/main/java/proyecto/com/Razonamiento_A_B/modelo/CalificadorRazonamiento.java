@@ -1,19 +1,21 @@
 package proyecto.com.Razonamiento_A_B.modelo;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import proyecto.com.Razonamiento_A_B.enums.OpcionRespuesta;
-
+import proyecto.com.Razonamiento_A_B.enums.SubFactor;
 import java.util.HashMap;
 import java.util.Map;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+
 public class CalificadorRazonamiento {
     private AplicacionTest aplicacionTest;
-
-    public CalificadorRazonamiento() {
-    }
-
-    public CalificadorRazonamiento(AplicacionTest aplicacionTest) {
-        this.aplicacionTest = aplicacionTest;
-    }
 
     public ResultadoRazonamiento calificar() {
         validarAplicacion();
@@ -101,13 +103,5 @@ public class CalificadorRazonamiento {
         if (aplicacionTest.getTest() == null) {
             throw new IllegalStateException("La aplicación debe tener un test asociado");
         }
-    }
-
-    public AplicacionTest getAplicacionTest() {
-        return aplicacionTest;
-    }
-
-    public void setAplicacionTest(AplicacionTest aplicacionTest) {
-        this.aplicacionTest = aplicacionTest;
     }
 }

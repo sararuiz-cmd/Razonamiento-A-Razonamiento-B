@@ -1,10 +1,5 @@
 package proyecto.com.Razonamiento_A_B.modelo;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -22,6 +17,11 @@ import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.openxava.annotations.DescriptionsList;
 import org.openxava.annotations.Required;
 import org.openxava.annotations.Tab;
@@ -29,16 +29,16 @@ import org.openxava.annotations.View;
 import proyecto.com.Razonamiento_A_B.enums.EstadoRespuesta;
 import proyecto.com.Razonamiento_A_B.enums.OpcionRespuesta;
 
-@Entity
-@Table(name = "aplicacion_respuestas")
-@IdClass(RespuestaMarcada.RespuestaMarcadaId.class)
-@View(members = "aplicacionTest; numeroItem; respuestaSeleccionada; estadoRespuesta; fechaRegistro")
-@Tab(properties = "aplicacionTest.idAplicacion,numeroItem,respuestaSeleccionada,estadoRespuesta,fechaRegistro")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(exclude = "aplicacionTest")
+@Entity
+@Table(name = "aplicacion_respuestas")
+@IdClass(RespuestaMarcada.RespuestaMarcadaId.class)
+@View(members = "aplicacionTest; numeroItem; respuestaSeleccionada; estadoRespuesta; fechaRegistro")
+@Tab(properties = "aplicacionTest.idAplicacion,numeroItem,respuestaSeleccionada,estadoRespuesta,fechaRegistro")
 public class RespuestaMarcada {
 
     @Id
@@ -97,46 +97,6 @@ public class RespuestaMarcada {
         if (fechaRegistro == null) {
             fechaRegistro = LocalDateTime.now();
         }
-    }
-
-    public AplicacionTest getAplicacionTest() {
-        return aplicacionTest;
-    }
-
-    public void setAplicacionTest(AplicacionTest aplicacionTest) {
-        this.aplicacionTest = aplicacionTest;
-    }
-
-    public Integer getNumeroItem() {
-        return numeroItem;
-    }
-
-    public void setNumeroItem(Integer numeroItem) {
-        this.numeroItem = numeroItem;
-    }
-
-    public OpcionRespuesta getRespuestaSeleccionada() {
-        return respuestaSeleccionada;
-    }
-
-    public void setRespuestaSeleccionada(OpcionRespuesta respuestaSeleccionada) {
-        this.respuestaSeleccionada = respuestaSeleccionada;
-    }
-
-    public EstadoRespuesta getEstadoRespuesta() {
-        return estadoRespuesta;
-    }
-
-    public void setEstadoRespuesta(EstadoRespuesta estadoRespuesta) {
-        this.estadoRespuesta = estadoRespuesta;
-    }
-
-    public LocalDateTime getFechaRegistro() {
-        return fechaRegistro;
-    }
-
-    public void setFechaRegistro(LocalDateTime fechaRegistro) {
-        this.fechaRegistro = fechaRegistro;
     }
 
     public static class RespuestaMarcadaId implements Serializable {

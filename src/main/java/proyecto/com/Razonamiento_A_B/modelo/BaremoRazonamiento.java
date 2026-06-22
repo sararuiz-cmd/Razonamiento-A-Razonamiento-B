@@ -1,89 +1,92 @@
 package proyecto.com.Razonamiento_A_B.modelo;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+
 import org.openxava.annotations.Hidden;
 import org.openxava.annotations.Required;
 import org.openxava.annotations.Tab;
 import org.openxava.annotations.View;
+
 import proyecto.com.Razonamiento_A_B.enums.Factor;
-import javax.persistence.*;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
-import java.util.Collections;
-import java.util.List;
 
 @Entity
+@Table(
+        name = "baremos_razonamiento",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_baremo_factor_rango",
+                columnNames = {"factor", "puntaje_min", "puntaje_max"}
+        )
+)
 @Getter
 @Setter
-@Table(name = "baremos_razonamiento")
-@View(members = "factor; puntajeMin; puntajeMax; percentil")
-@Tab(properties = "idBaremo,factor,puntajeMin,puntajeMax,percentil")
-
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
+@View(members =
+        "Datos del baremo { factor; puntajeMin; puntajeMax; percentil }"
+)
+@Tab(properties = "idBaremo, factor, puntajeMin, puntajeMax, percentil")
 public class BaremoRazonamiento {
+
     @Id
     @Hidden
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_baremo")
-    private Integer idBaremo;
+    private Long idBaremo;
 
     @Required
-    @NotNull(message = "El factor es obligatorio")
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "factor", nullable = false, length = 10)
     private Factor factor;
 
     @Required
-    @Min(value = 0, message = "El puntaje mínimo no puede ser negativo")
+    @NotNull
+    @Min(0)
     @Column(name = "puntaje_min", nullable = false)
-    private Integer puntajeMin = 0;
+    private Integer puntajeMin;
 
     @Required
-    @Min(value = 0, message = "El puntaje máximo no puede ser negativo")
+    @NotNull
+    @Min(0)
     @Column(name = "puntaje_max", nullable = false)
-    private Integer puntajeMax = 0;
+    private Integer puntajeMax;
 
     @Required
-    @Min(value = 0, message = "El percentil no puede ser negativo")
+    @NotNull
+    @Min(1)
+    @Max(99)
     @Column(name = "percentil", nullable = false)
-    private Integer percentil = 0;
-
-    public int buscarPercentil() {
-        return percentil == null ? 0 : percentil;
-    }
-
-    public String interpretarNivel() {
-        int p = buscarPercentil();
-        if (p >= 75)  return "ALTO";
-        if (p >= 40)  return "MEDIO";
-        return "BAJO";
-    }
-
-    public List<BaremoRazonamiento> obtenerBaremosPorFactor() {
-        return Collections.singletonList(this);
-    }
-
-    public boolean contienePuntaje(int puntaje) {
-        return puntajeMin != null && puntajeMax != null && puntaje >= puntajeMin && puntaje <= puntajeMax;
-    }
+    private Integer percentil;
 
     @PrePersist
     @PreUpdate
-    private void validarRegistro() {
-        if (factor == null) {
-            throw new IllegalArgumentException("El factor es obligatorio");
+    private void validarRango() {
+        if (puntajeMin == null || puntajeMax == null || percentil == null || factor == null) {
+            throw new IllegalArgumentException("Todos los datos del baremo son obligatorios.");
         }
-        if (puntajeMin == null || puntajeMin < 0) {
-            throw new IllegalArgumentException("El puntaje mínimo no puede ser negativo");
-        }
-        if (puntajeMax == null || puntajeMax < 0) {
-            throw new IllegalArgumentException("El puntaje máximo no puede ser negativo");
-        }
-        if (puntajeMax < puntajeMin) {
-            throw new IllegalArgumentException("El puntaje máximo no puede ser menor que el puntaje mínimo");
-        }
-        if (percentil == null || percentil < 0 || percentil > 100) {
-            throw new IllegalArgumentException("El percentil debe estar entre 0 y 100");
+
+        if (puntajeMin > puntajeMax) {
+            throw new IllegalArgumentException("El puntaje mínimo no puede ser mayor que el puntaje máximo.");
         }
     }
 }

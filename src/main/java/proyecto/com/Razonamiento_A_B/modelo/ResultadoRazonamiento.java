@@ -37,7 +37,7 @@ import proyecto.com.Razonamiento_A_B.servicio.BaremoRazonamientoService;
                 "Puntajes { puntajesSegunAplicacion; } " +
                 "Resumen { resumenFinal; }"
 )
-@Tab(properties = "idResultado,aplicacionTest.idAplicacion,puntajePrincipal,percentilPrincipal,aciertos")
+@Tab(properties = "idResultado,aplicacionTest.idAplicacion,aplicacionTest.test.tipoTest,r1,percentilR1,r2,percentilR2,rt,percentilRT,aciertos")
 public class ResultadoRazonamiento {
 
     @Id

@@ -1,15 +1,18 @@
 package proyecto.com.Razonamiento_A_B.modelo;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -17,25 +20,33 @@ import javax.persistence.OneToMany;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
-import javax.validation.constraints.Min;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+
+import org.openxava.annotations.CollectionView;
+import org.openxava.annotations.Depends;
 import org.openxava.annotations.Hidden;
 import org.openxava.annotations.ListProperties;
+import org.openxava.annotations.ReadOnly;
 import org.openxava.annotations.Required;
+import org.openxava.annotations.Stereotype;
 import org.openxava.annotations.Tab;
 import org.openxava.annotations.View;
+
+import proyecto.com.Razonamiento_A_B.enums.TipoTestRazonamiento;
 
 @Entity
 @Table(name = "tests_razonamiento")
 @View(members =
-        "Datos del test { nombre; tiempoFormaA; tiempoFormaB; } " +
-                "Instrucciones { instruccionesFormaA; instruccionesFormaB; } " +
-                "Ítems { items; }")
-@Tab(properties = "idTest,nombre,tiempoFormaA,tiempoFormaB")
+        "Datos del test { tipoTest; tiempoLimite; notaTiempoBFA; } " +
+                "Instrucciones { instrucciones; } " +
+                "Ítems { items; }"
+)
+@Tab(properties = "idTest,tipoTest")
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @ToString(exclude = "items")
 public class TestRazonamiento {
 
@@ -46,64 +57,78 @@ public class TestRazonamiento {
     private Integer idTest;
 
     @Required
-    @NotBlank(message = "El nombre del test es obligatorio")
-    @Column(name = "nombre", nullable = false, length = 120)
-    private String nombre;
-
-    @Column(name = "instrucciones_forma_a", columnDefinition = "TEXT")
-    private String instruccionesFormaA;
-
-    @Column(name = "instrucciones_forma_b", columnDefinition = "TEXT")
-    private String instruccionesFormaB;
+    @NotNull(message = "Debe seleccionar el tipo de test: A o B")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_test", nullable = false, length = 1)
+    private TipoTestRazonamiento tipoTest = TipoTestRazonamiento.A;
 
     @Required
-    @Min(value = 1, message = "El tiempo de la forma A debe ser mayor a cero")
-    @Column(name = "tiempo_forma_a", nullable = false)
-    private Integer tiempoFormaA = 12;
-
-    @Required
-    @Min(value = 1, message = "El tiempo de la forma B debe ser mayor a cero")
-    @Column(name = "tiempo_forma_b", nullable = false)
-    private Integer tiempoFormaB = 12;
+    @NotBlank(message = "Las instrucciones son obligatorias")
+    @Stereotype("MEMO")
+    @Column(name = "instrucciones", nullable = false, columnDefinition = "TEXT")
+    private String instrucciones;
 
     @OneToMany(mappedBy = "test", cascade = CascadeType.ALL, orphanRemoval = true)
+    @CollectionView("DesdeTest")
     @ListProperties("numero,enunciado,opcionA,opcionB,opcionC,opcionD,respuestaCorrecta,subFactor,tipoItem")
     private List<ItemRazonamiento> items = new ArrayList<>();
+
+    @Transient
+    @ReadOnly
+    @Depends("tipoTest")
+    public Integer getTiempoLimite() {
+        if (tipoTest == null) {
+            return null;
+        }
+
+        return tipoTest.getTiempoMinutos();
+    }
+
+    @Transient
+    @ReadOnly
+    @Stereotype("MEMO")
+    @Depends("tipoTest")
+    public String getNotaTiempoBFA() {
+        if (tipoTest == null) {
+            return "Seleccione el tipo de test para mostrar el tiempo límite.";
+        }
+
+        return "Tiempo límite establecido por el manual BFA para "
+                + tipoTest
+                + ": "
+                + tipoTest.getTiempoMinutos()
+                + " minutos.";
+    }
 
     public List<ItemRazonamiento> cargarItems() {
         return items;
     }
 
     public String obtenerInstrucciones() {
-        String a = instruccionesFormaA == null ? "" : instruccionesFormaA.trim();
-        String b = instruccionesFormaB == null ? "" : instruccionesFormaB.trim();
-        return (a + "\n\n" + b).trim();
-    }
-
-    public String obtenerInstruccionesFormaA() {
-        return instruccionesFormaA;
-    }
-
-    public String obtenerInstruccionesFormaB() {
-        return instruccionesFormaB;
+        return instrucciones == null ? "" : instrucciones.trim();
     }
 
     public int obtenerTiempoLimite() {
-        return Math.max(tiempoFormaA == null ? 0 : tiempoFormaA, tiempoFormaB == null ? 0 : tiempoFormaB);
+        return tipoTest == null ? 0 : tipoTest.getTiempoMinutos();
     }
 
-    public int obtenerTiempoLimiteFormaA() {
-        return tiempoFormaA == null ? 0 : tiempoFormaA;
+    public boolean esFormaA() {
+        return tipoTest == TipoTestRazonamiento.A;
     }
 
-    public int obtenerTiempoLimiteFormaB() {
-        return tiempoFormaB == null ? 0 : tiempoFormaB;
+    public boolean esFormaB() {
+        return tipoTest == TipoTestRazonamiento.B;
+    }
+
+    public String obtenerNombreDescriptivo() {
+        return tipoTest == null ? "" : tipoTest.toString();
     }
 
     public void agregarItem(ItemRazonamiento item) {
         if (item == null) {
             return;
         }
+
         item.setTest(this);
         items.add(item);
     }
@@ -111,70 +136,12 @@ public class TestRazonamiento {
     @PrePersist
     @PreUpdate
     private void validarRegistro() {
-        if (nombre == null || nombre.trim().isEmpty()) {
-            throw new IllegalArgumentException("El nombre del test es obligatorio");
+        if (tipoTest == null) {
+            throw new IllegalArgumentException("Debe seleccionar el tipo de test: A o B");
         }
-        if (tiempoFormaA == null || tiempoFormaA <= 0) {
-            throw new IllegalArgumentException("El tiempo de la forma A debe ser mayor a cero");
+
+        if (instrucciones == null || instrucciones.trim().isEmpty()) {
+            throw new IllegalArgumentException("Las instrucciones son obligatorias");
         }
-        if (tiempoFormaB == null || tiempoFormaB <= 0) {
-            throw new IllegalArgumentException("El tiempo de la forma B debe ser mayor a cero");
-        }
-    }
-
-    public Integer getIdTest() {
-        return idTest;
-    }
-
-    public void setIdTest(Integer idTest) {
-        this.idTest = idTest;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public String getInstruccionesFormaA() {
-        return instruccionesFormaA;
-    }
-
-    public void setInstruccionesFormaA(String instruccionesFormaA) {
-        this.instruccionesFormaA = instruccionesFormaA;
-    }
-
-    public String getInstruccionesFormaB() {
-        return instruccionesFormaB;
-    }
-
-    public void setInstruccionesFormaB(String instruccionesFormaB) {
-        this.instruccionesFormaB = instruccionesFormaB;
-    }
-
-    public Integer getTiempoFormaA() {
-        return tiempoFormaA;
-    }
-
-    public void setTiempoFormaA(Integer tiempoFormaA) {
-        this.tiempoFormaA = tiempoFormaA;
-    }
-
-    public Integer getTiempoFormaB() {
-        return tiempoFormaB;
-    }
-
-    public void setTiempoFormaB(Integer tiempoFormaB) {
-        this.tiempoFormaB = tiempoFormaB;
-    }
-
-    public List<ItemRazonamiento> getItems() {
-        return items;
-    }
-
-    public void setItems(List<ItemRazonamiento> items) {
-        this.items = items;
     }
 }

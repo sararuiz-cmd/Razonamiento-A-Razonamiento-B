@@ -1,10 +1,10 @@
 package proyecto.com.Razonamiento_A_B.modelo;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -22,11 +22,15 @@ import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+
 import org.openxava.annotations.DescriptionsList;
 import org.openxava.annotations.Hidden;
 import org.openxava.annotations.Required;
+import org.openxava.annotations.Stereotype;
 import org.openxava.annotations.Tab;
 import org.openxava.annotations.View;
+import org.openxava.annotations.Views;
+
 import proyecto.com.Razonamiento_A_B.enums.OpcionRespuesta;
 import proyecto.com.Razonamiento_A_B.enums.SubFactor;
 import proyecto.com.Razonamiento_A_B.enums.TipoItem;
@@ -34,17 +38,28 @@ import proyecto.com.Razonamiento_A_B.enums.TipoItem;
 @Entity
 @Table(
         name = "items_razonamiento",
-        uniqueConstraints = @UniqueConstraint(name = "uk_item_test_numero", columnNames = {"id_test_fk", "numero"})
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_item_test_numero",
+                columnNames = {"id_test_fk", "numero"}
+        )
 )
-@View(members =
-        "Datos del ítem { test; numero; enunciado; } " +
-                "Opciones { opcionA; opcionB; opcionC; opcionD; respuestaCorrecta; } " +
-                "Clasificación { subFactor; tipoItem; }")
-@Tab(properties = "idItem,test.nombre,numero,enunciado,respuestaCorrecta,subFactor,tipoItem")
+@Views({
+        @View(members =
+                "Datos del ítem { test; numero; enunciado; } " +
+                        "Opciones { opcionA; opcionB; opcionC; opcionD; respuestaCorrecta; } " +
+                        "Clasificación { subFactor; tipoItem; }"
+        ),
+
+        @View(name = "DesdeTest", members =
+                "Datos del ítem { numero; enunciado; } " +
+                        "Opciones { opcionA; opcionB; opcionC; opcionD; respuestaCorrecta; } " +
+                        "Clasificación { subFactor; tipoItem; }"
+        )
+})
+@Tab(properties = "idItem,test.tipoTest,numero,enunciado,respuestaCorrecta,subFactor,tipoItem")
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @ToString(exclude = "test")
 public class ItemRazonamiento {
 
@@ -55,7 +70,7 @@ public class ItemRazonamiento {
     private Integer idItem;
 
     @Required
-    @DescriptionsList(descriptionProperties = "nombre")
+    @DescriptionsList(descriptionProperties = "tipoTest")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_test_fk", nullable = false)
     private TestRazonamiento test;
@@ -67,6 +82,7 @@ public class ItemRazonamiento {
 
     @Required
     @NotBlank(message = "El enunciado es obligatorio")
+    @Stereotype("MEMO")
     @Column(name = "enunciado", nullable = false, length = 1000)
     private String enunciado;
 
@@ -116,6 +132,7 @@ public class ItemRazonamiento {
         if (respuesta == null || respuesta.trim().isEmpty()) {
             return false;
         }
+
         try {
             return verificarRespuesta(OpcionRespuesta.valueOf(respuesta.trim().toUpperCase()));
         } catch (IllegalArgumentException ex) {
@@ -133,114 +150,32 @@ public class ItemRazonamiento {
         if (test == null) {
             throw new IllegalArgumentException("El ítem debe pertenecer a un test");
         }
+
         if (numero == null || numero <= 0) {
             throw new IllegalArgumentException("El número del ítem debe ser mayor a cero");
         }
+
         if (enunciado == null || enunciado.trim().isEmpty()) {
             throw new IllegalArgumentException("El enunciado es obligatorio");
         }
+
         if (opcionA == null || opcionA.trim().isEmpty()
                 || opcionB == null || opcionB.trim().isEmpty()
                 || opcionC == null || opcionC.trim().isEmpty()
                 || opcionD == null || opcionD.trim().isEmpty()) {
             throw new IllegalArgumentException("Las opciones A, B, C y D son obligatorias");
         }
+
         if (respuestaCorrecta == null) {
             throw new IllegalArgumentException("La respuesta correcta es obligatoria");
         }
+
         if (subFactor == null) {
             throw new IllegalArgumentException("El subfactor es obligatorio");
         }
+
         if (tipoItem == null) {
             throw new IllegalArgumentException("El tipo de ítem es obligatorio");
         }
-    }
-
-    public Integer getIdItem() {
-        return idItem;
-    }
-
-    public void setIdItem(Integer idItem) {
-        this.idItem = idItem;
-    }
-
-    public TestRazonamiento getTest() {
-        return test;
-    }
-
-    public void setTest(TestRazonamiento test) {
-        this.test = test;
-    }
-
-    public Integer getNumero() {
-        return numero;
-    }
-
-    public void setNumero(Integer numero) {
-        this.numero = numero;
-    }
-
-    public String getEnunciado() {
-        return enunciado;
-    }
-
-    public void setEnunciado(String enunciado) {
-        this.enunciado = enunciado;
-    }
-
-    public String getOpcionA() {
-        return opcionA;
-    }
-
-    public void setOpcionA(String opcionA) {
-        this.opcionA = opcionA;
-    }
-
-    public String getOpcionB() {
-        return opcionB;
-    }
-
-    public void setOpcionB(String opcionB) {
-        this.opcionB = opcionB;
-    }
-
-    public String getOpcionC() {
-        return opcionC;
-    }
-
-    public void setOpcionC(String opcionC) {
-        this.opcionC = opcionC;
-    }
-
-    public String getOpcionD() {
-        return opcionD;
-    }
-
-    public void setOpcionD(String opcionD) {
-        this.opcionD = opcionD;
-    }
-
-    public OpcionRespuesta getRespuestaCorrecta() {
-        return respuestaCorrecta;
-    }
-
-    public void setRespuestaCorrecta(OpcionRespuesta respuestaCorrecta) {
-        this.respuestaCorrecta = respuestaCorrecta;
-    }
-
-    public SubFactor getSubFactor() {
-        return subFactor;
-    }
-
-    public void setSubFactor(SubFactor subFactor) {
-        this.subFactor = subFactor;
-    }
-
-    public TipoItem getTipoItem() {
-        return tipoItem;
-    }
-
-    public void setTipoItem(TipoItem tipoItem) {
-        this.tipoItem = tipoItem;
     }
 }

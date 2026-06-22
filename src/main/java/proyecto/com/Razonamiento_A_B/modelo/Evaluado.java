@@ -25,7 +25,9 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
+import org.openxava.actions.OnChangePropertyBaseAction;
 import org.openxava.annotations.Hidden;
+import org.openxava.annotations.OnChange;
 import org.openxava.annotations.Required;
 import org.openxava.annotations.Tab;
 import org.openxava.annotations.View;
@@ -36,10 +38,10 @@ import proyecto.com.Razonamiento_A_B.enums.NivelAcademico;
 @Table(name = "evaluados")
 @View(members =
         "Datos personales { nombres; apellidos; identificacion; fechaNacimiento; sexo; } " +
-                "Datos académicos { nivelAcademico; } " +
+                "Datos académicos { nivelAcademico; profesion; } " +
                 "Acceso al portal { usuario; contrasena; }"
 )
-@Tab(properties = "idEvaluado,nombres,apellidos,identificacion,usuario,contrasena,fechaNacimiento,sexo,nivelAcademico")
+@Tab(properties = "idEvaluado,nombres,apellidos,identificacion,usuario,contrasena,fechaNacimiento,sexo,nivelAcademico,profesion")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -57,9 +59,14 @@ public class Evaluado extends Persona {
 
     @Required
     @NotNull(message = "El nivel académico es obligatorio")
+    @OnChange(OnChangeNivelAcademico.class)
     @Enumerated(EnumType.STRING)
     @Column(name = "nivel_academico", nullable = false, length = 30)
     private NivelAcademico nivelAcademico;
+
+    @Hidden
+    @Column(name = "profesion", length = 100)
+    private String profesion;
 
     @Required
     @NotBlank(message = "El usuario del evaluado es obligatorio")
@@ -112,6 +119,8 @@ public class Evaluado extends Persona {
             throw new IllegalArgumentException("El nivel académico es obligatorio");
         }
 
+        validarProfesionSiAplica();
+
         if (usuario == null || usuario.trim().isEmpty()) {
             throw new IllegalArgumentException("El usuario del evaluado es obligatorio");
         }
@@ -125,6 +134,18 @@ public class Evaluado extends Persona {
 
         if (!validarEdad()) {
             throw new IllegalArgumentException("El evaluado debe tener al menos " + EDAD_MINIMA + " años");
+        }
+    }
+
+    private void validarProfesionSiAplica() {
+        if (nivelAcademico == NivelAcademico.PROFESIONAL) {
+            if (profesion == null || profesion.trim().isEmpty()) {
+                throw new IllegalArgumentException("Debe indicar la profesión del evaluado");
+            }
+
+            profesion = profesion.trim();
+        } else {
+            profesion = null;
         }
     }
 
@@ -159,6 +180,24 @@ public class Evaluado extends Persona {
 
         } catch (NoSuchAlgorithmException ex) {
             throw new IllegalStateException("No se pudo cifrar la contraseña", ex);
+        }
+    }
+
+    public static class OnChangeNivelAcademico extends OnChangePropertyBaseAction {
+
+        @Override
+        public void execute() throws Exception {
+            Object valor = getNewValue();
+
+            boolean esProfesional = valor != null
+                    && NivelAcademico.PROFESIONAL.name().equals(valor.toString());
+
+            getView().setHidden("profesion", !esProfesional);
+            getView().setEditable("profesion", esProfesional);
+
+            if (!esProfesional) {
+                getView().setValue("profesion", null);
+            }
         }
     }
 }

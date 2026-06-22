@@ -98,6 +98,8 @@ public class RespuestaMarcada {
         }
     }
 
+    @Setter
+    @Getter
     public static class RespuestaMarcadaId implements Serializable {
         private Integer aplicacionTest;
         private Integer numeroItem;
@@ -107,22 +109,6 @@ public class RespuestaMarcada {
 
         public RespuestaMarcadaId(Integer aplicacionTest, Integer numeroItem) {
             this.aplicacionTest = aplicacionTest;
-            this.numeroItem = numeroItem;
-        }
-
-        public Integer getAplicacionTest() {
-            return aplicacionTest;
-        }
-
-        public void setAplicacionTest(Integer aplicacionTest) {
-            this.aplicacionTest = aplicacionTest;
-        }
-
-        public Integer getNumeroItem() {
-            return numeroItem;
-        }
-
-        public void setNumeroItem(Integer numeroItem) {
             this.numeroItem = numeroItem;
         }
 

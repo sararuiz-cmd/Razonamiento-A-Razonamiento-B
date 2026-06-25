@@ -37,7 +37,7 @@ import proyecto.com.Razonamiento_A_B.servicio.BaremoRazonamientoService;
                 "Puntajes { puntajesSegunAplicacion; } " +
                 "Resumen { resumenFinal; }"
 )
-@Tab(properties = "idResultado,aplicacionTest.idAplicacion,aplicacionTest.test.tipoTest,r1,percentilR1,r2,percentilR2,rt,percentilRT,aciertos")
+@Tab(properties = "idResultado,aplicacionTest.idAplicacion,r1,percentilR1,r2,percentilR2,rt,percentilRT,aciertos")
 public class ResultadoRazonamiento {
 
     @Id
@@ -99,7 +99,7 @@ public class ResultadoRazonamiento {
         StringBuilder texto = new StringBuilder();
 
         if (esResultadoCombinado()) {
-            texto.append("Resultado combinado Razonamiento A y B");
+            texto.append("Resultado combinado de Razonamiento A y Razonamiento B");
             texto.append("\nR1: ").append(valorNumero(r1));
             texto.append("\nPercentil R1: ").append(valorTexto(obtenerPercentilR1()));
             texto.append("\nR2: ").append(valorNumero(r2));
@@ -111,7 +111,7 @@ public class ResultadoRazonamiento {
         }
 
         if (esFormaA()) {
-            texto.append("Resultado Razonamiento A");
+            texto.append("Resultado de Razonamiento A");
             texto.append("\nR1: ").append(valorNumero(r1));
             texto.append("\nPercentil R1: ").append(valorTexto(obtenerPercentilR1()));
             texto.append("\nAciertos: ").append(valorNumero(aciertos));
@@ -119,14 +119,16 @@ public class ResultadoRazonamiento {
         }
 
         if (esFormaB()) {
-            texto.append("Resultado Razonamiento B");
+            texto.append("Resultado de Razonamiento B");
             texto.append("\nR2: ").append(valorNumero(r2));
             texto.append("\nPercentil R2: ").append(valorTexto(obtenerPercentilR2()));
             texto.append("\nAciertos: ").append(valorNumero(aciertos));
             return texto.toString();
         }
 
-        return "No hay puntajes registrados.";
+        texto.append("Resultado de razonamiento");
+        texto.append("\nAciertos: ").append(valorNumero(aciertos));
+        return texto.toString();
     }
 
     @Transient
@@ -144,7 +146,7 @@ public class ResultadoRazonamiento {
             return valorNumero(r2);
         }
 
-        return 0;
+        return valorNumero(aciertos);
     }
 
     @Transient
@@ -183,6 +185,7 @@ public class ResultadoRazonamiento {
             resumen.append("\nId resultado: ").append(idResultado);
         }
 
+        resumen.append("\nTests aplicados: ").append(obtenerTestsAplicadosTexto());
         resumen.append("\n").append(getPuntajesSegunAplicacion());
 
         if (aplicacionTest != null) {
@@ -282,6 +285,8 @@ public class ResultadoRazonamiento {
             baremoR2 = BaremoRazonamientoService.buscarBaremo(Factor.R2, valorNumero(r2));
             percentilR2 = baremoR2 == null ? null : baremoR2.getPercentil();
 
+            rt = valorNumero(r1) + valorNumero(r2);
+
             baremoRT = BaremoRazonamientoService.buscarBaremo(Factor.RT, valorNumero(rt));
             percentilRT = baremoRT == null ? null : baremoRT.getPercentil();
             return;
@@ -300,25 +305,78 @@ public class ResultadoRazonamiento {
     }
 
     private boolean esResultadoCombinado() {
+        if (aplicacionTieneFormaA() && aplicacionTieneFormaB()) {
+            return true;
+        }
+
         return valorNumero(r1) > 0 && valorNumero(r2) > 0;
     }
 
     private boolean esFormaA() {
-        if (aplicacionTest == null || aplicacionTest.getTest() == null
-                || aplicacionTest.getTest().getTipoTest() == null) {
-            return valorNumero(r1) > 0 && valorNumero(r2) == 0;
+        if (aplicacionTieneFormaA() && !aplicacionTieneFormaB()) {
+            return true;
         }
 
-        return "A".equals(aplicacionTest.getTest().getTipoTest().name());
+        return valorNumero(r1) > 0 && valorNumero(r2) == 0;
     }
 
     private boolean esFormaB() {
-        if (aplicacionTest == null || aplicacionTest.getTest() == null
-                || aplicacionTest.getTest().getTipoTest() == null) {
-            return valorNumero(r2) > 0 && valorNumero(r1) == 0;
+        if (aplicacionTieneFormaB() && !aplicacionTieneFormaA()) {
+            return true;
         }
 
-        return "B".equals(aplicacionTest.getTest().getTipoTest().name());
+        return valorNumero(r2) > 0 && valorNumero(r1) == 0;
+    }
+
+    private boolean aplicacionTieneFormaA() {
+        if (aplicacionTest == null || aplicacionTest.getTestsAplicados() == null) {
+            return false;
+        }
+
+        for (TestRazonamiento test : aplicacionTest.getTestsAplicados()) {
+            if (test != null && test.esFormaA()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean aplicacionTieneFormaB() {
+        if (aplicacionTest == null || aplicacionTest.getTestsAplicados() == null) {
+            return false;
+        }
+
+        for (TestRazonamiento test : aplicacionTest.getTestsAplicados()) {
+            if (test != null && test.esFormaB()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private String obtenerTestsAplicadosTexto() {
+        if (aplicacionTest == null || aplicacionTest.getTestsAplicados() == null
+                || aplicacionTest.getTestsAplicados().isEmpty()) {
+            return "Sin tests registrados";
+        }
+
+        StringBuilder texto = new StringBuilder();
+
+        for (TestRazonamiento test : aplicacionTest.getTestsAplicados()) {
+            if (test == null) {
+                continue;
+            }
+
+            if (texto.length() > 0) {
+                texto.append(", ");
+            }
+
+            texto.append(test.obtenerNombreDescriptivo());
+        }
+
+        return texto.toString();
     }
 
     private Integer obtenerPercentilR1() {

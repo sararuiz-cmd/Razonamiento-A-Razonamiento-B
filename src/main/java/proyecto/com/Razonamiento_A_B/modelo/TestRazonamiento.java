@@ -5,14 +5,14 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -21,11 +21,11 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 import org.openxava.annotations.CollectionView;
-import org.openxava.annotations.Depends;
 import org.openxava.annotations.Hidden;
 import org.openxava.annotations.ListProperties;
 import org.openxava.annotations.ReadOnly;
@@ -33,17 +33,22 @@ import org.openxava.annotations.Required;
 import org.openxava.annotations.Stereotype;
 import org.openxava.annotations.Tab;
 import org.openxava.annotations.View;
-
-import proyecto.com.Razonamiento_A_B.enums.TipoTestRazonamiento;
+import org.openxava.annotations.Views;
 
 @Entity
 @Table(name = "tests_razonamiento")
-@View(members =
-        "Datos del test { tipoTest; tiempoLimite; notaTiempoBFA; } " +
-                "Instrucciones { instrucciones; } " +
-                "Ítems { items; }"
-)
-@Tab(properties = "idTest,tipoTest")
+@Views({
+        @View(members =
+                "Datos del test { nombre; tiempoLimite; notaTiempo; } " +
+                        "Instrucciones { instrucciones; } " +
+                        "Ítems { items; }"
+        ),
+
+        @View(name = "Simple", members =
+                "Datos del test { nombre; tiempoLimite; notaTiempo; }"
+        )
+})
+@Tab(properties = "idTest,nombre,tiempoLimite")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -56,11 +61,20 @@ public class TestRazonamiento {
     @Column(name = "id_test")
     private Integer idTest;
 
+    @Hidden
+    @Column(name = "codigo", nullable = false, unique = true, length = 30)
+    private String codigo;
+
     @Required
-    @NotNull(message = "Debe seleccionar el tipo de test: A o B")
-    @Enumerated(EnumType.STRING)
-    @Column(name = "tipo_test", nullable = false, length = 1)
-    private TipoTestRazonamiento tipoTest = TipoTestRazonamiento.A;
+    @NotBlank(message = "El nombre del test es obligatorio")
+    @Column(name = "nombre", nullable = false, length = 100)
+    private String nombre;
+
+    @Required
+    @NotNull(message = "El tiempo límite es obligatorio")
+    @Min(value = 1, message = "El tiempo límite debe ser mayor a cero")
+    @Column(name = "tiempo_limite", nullable = false)
+    private Integer tiempoLimite;
 
     @Required
     @NotBlank(message = "Las instrucciones son obligatorias")
@@ -75,29 +89,16 @@ public class TestRazonamiento {
 
     @Transient
     @ReadOnly
-    @Depends("tipoTest")
-    public Integer getTiempoLimite() {
-        if (tipoTest == null) {
-            return null;
-        }
-
-        return tipoTest.getTiempoMinutos();
-    }
-
-    @Transient
-    @ReadOnly
     @Stereotype("MEMO")
-    @Depends("tipoTest")
-    public String getNotaTiempoBFA() {
-        if (tipoTest == null) {
-            return "Seleccione el tipo de test para mostrar el tiempo límite.";
+    public String getNotaTiempo() {
+        if (nombre == null || tiempoLimite == null) {
+            return "Ingrese el nombre del test y su tiempo límite.";
         }
 
-        return "Tiempo límite establecido por el manual BFA para "
-                + tipoTest
-                + ": "
-                + tipoTest.getTiempoMinutos()
-                + " minutos.";
+        return nombre.trim()
+                + " tiene un tiempo límite de "
+                + tiempoLimite
+                + " minutos. Este tiempo se respetará tanto si se aplica solo como si se aplica dentro de una lista de tests.";
     }
 
     public List<ItemRazonamiento> cargarItems() {
@@ -109,19 +110,21 @@ public class TestRazonamiento {
     }
 
     public int obtenerTiempoLimite() {
-        return tipoTest == null ? 0 : tipoTest.getTiempoMinutos();
+        return tiempoLimite == null ? 0 : tiempoLimite;
     }
 
     public boolean esFormaA() {
-        return tipoTest == TipoTestRazonamiento.A;
+        return "A".equalsIgnoreCase(codigo)
+                || "RAZONAMIENTO_A".equalsIgnoreCase(codigo);
     }
 
     public boolean esFormaB() {
-        return tipoTest == TipoTestRazonamiento.B;
+        return "B".equalsIgnoreCase(codigo)
+                || "RAZONAMIENTO_B".equalsIgnoreCase(codigo);
     }
 
     public String obtenerNombreDescriptivo() {
-        return tipoTest == null ? "" : tipoTest.toString();
+        return nombre == null ? "" : nombre.trim();
     }
 
     public void agregarItem(ItemRazonamiento item) {
@@ -136,12 +139,59 @@ public class TestRazonamiento {
     @PrePersist
     @PreUpdate
     private void validarRegistro() {
-        if (tipoTest == null) {
-            throw new IllegalArgumentException("Debe seleccionar el tipo de test: A o B");
+        if (nombre == null || nombre.trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre del test es obligatorio");
+        }
+
+        if (tiempoLimite == null || tiempoLimite <= 0) {
+            throw new IllegalArgumentException("El tiempo límite debe ser mayor a cero");
         }
 
         if (instrucciones == null || instrucciones.trim().isEmpty()) {
             throw new IllegalArgumentException("Las instrucciones son obligatorias");
         }
+
+        nombre = nombre.trim();
+        instrucciones = instrucciones.trim();
+
+        if (codigo == null || codigo.trim().isEmpty()) {
+            codigo = generarCodigoAutomatico(nombre);
+        } else {
+            codigo = codigo.trim().toUpperCase();
+        }
+    }
+
+    private String generarCodigoAutomatico(String nombreTest) {
+        String nombreNormalizado = normalizarTexto(nombreTest);
+
+        if ("RAZONAMIENTO_A".equals(nombreNormalizado)) {
+            return "A";
+        }
+
+        if ("RAZONAMIENTO_B".equals(nombreNormalizado)) {
+            return "B";
+        }
+
+        String sufijo = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+
+        return nombreNormalizado + "_" + sufijo;
+    }
+
+    private String normalizarTexto(String texto) {
+        if (texto == null || texto.trim().isEmpty()) {
+            return "TEST";
+        }
+
+        String normalizado = Normalizer.normalize(texto.trim(), Normalizer.Form.NFD);
+        normalizado = normalizado.replaceAll("\\p{M}", "");
+        normalizado = normalizado.replaceAll("[^a-zA-Z0-9]+", "_");
+        normalizado = normalizado.replaceAll("_+", "_");
+        normalizado = normalizado.replaceAll("^_|_$", "");
+
+        if (normalizado.isEmpty()) {
+            return "TEST";
+        }
+
+        return normalizado.toUpperCase();
     }
 }

@@ -53,6 +53,8 @@ import org.openxava.annotations.Views;
 @ToString(exclude = "items")
 public class TestRazonamiento {
 
+    private static final int MAX_CODIGO = 50;
+
     @Id
     @Hidden
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -60,7 +62,7 @@ public class TestRazonamiento {
     private Integer idTest;
 
     @Hidden
-    @Column(name = "codigo", nullable = false, unique = true, length = 30)
+    @Column(name = "codigo", nullable = false, unique = true, length = MAX_CODIGO)
     private String codigo;
 
     @Required
@@ -124,15 +126,15 @@ public class TestRazonamiento {
     @PreUpdate
     private void validarRegistro() {
         if (nombre == null || nombre.trim().isEmpty()) {
-            throw new IllegalArgumentException("El nombre del test es obligatorio");
+            throw new IllegalArgumentException("El nombre del test es obligatorio.");
         }
 
         if (tiempoLimite == null || tiempoLimite <= 0) {
-            throw new IllegalArgumentException("El tiempo límite debe ser mayor a cero");
+            throw new IllegalArgumentException("El tiempo límite debe ser mayor a cero.");
         }
 
         if (instrucciones == null || instrucciones.trim().isEmpty()) {
-            throw new IllegalArgumentException("Las instrucciones son obligatorias");
+            throw new IllegalArgumentException("Las instrucciones son obligatorias.");
         }
 
         nombre = nombre.trim();
@@ -141,24 +143,56 @@ public class TestRazonamiento {
         if (codigo == null || codigo.trim().isEmpty()) {
             codigo = generarCodigoAutomatico(nombre);
         } else {
-            codigo = codigo.trim().toUpperCase();
+            codigo = normalizarCodigoManual(codigo);
+        }
+
+        sincronizarItems();
+    }
+
+    private void sincronizarItems() {
+        if (items == null) {
+            items = new ArrayList<>();
+            return;
+        }
+
+        for (ItemRazonamiento item : items) {
+            if (item != null) {
+                item.setTest(this);
+            }
         }
     }
 
     private String generarCodigoAutomatico(String nombreTest) {
         String nombreNormalizado = normalizarTexto(nombreTest);
 
-        if ("RAZONAMIENTO_A".equals(nombreNormalizado)) {
+        if ("RAZONAMIENTO_A".equals(nombreNormalizado)
+                || "RAZONAMIENTO_FORMA_A".equals(nombreNormalizado)) {
             return "A";
         }
 
-        if ("RAZONAMIENTO_B".equals(nombreNormalizado)) {
+        if ("RAZONAMIENTO_B".equals(nombreNormalizado)
+                || "RAZONAMIENTO_FORMA_B".equals(nombreNormalizado)) {
             return "B";
         }
 
         String sufijo = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        int maxBase = MAX_CODIGO - sufijo.length() - 1;
+
+        if (nombreNormalizado.length() > maxBase) {
+            nombreNormalizado = nombreNormalizado.substring(0, maxBase);
+        }
 
         return nombreNormalizado + "_" + sufijo;
+    }
+
+    private String normalizarCodigoManual(String codigoManual) {
+        String codigoNormalizado = normalizarTexto(codigoManual);
+
+        if (codigoNormalizado.length() > MAX_CODIGO) {
+            codigoNormalizado = codigoNormalizado.substring(0, MAX_CODIGO);
+        }
+
+        return codigoNormalizado;
     }
 
     private String normalizarTexto(String texto) {

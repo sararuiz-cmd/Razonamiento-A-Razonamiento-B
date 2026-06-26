@@ -3,6 +3,7 @@ package proyecto.com.Razonamiento_A_B.modelo;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -16,16 +17,19 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+
 import org.openxava.annotations.DescriptionsList;
+import org.openxava.annotations.ReadOnly;
 import org.openxava.annotations.Required;
 import org.openxava.annotations.Tab;
 import org.openxava.annotations.View;
+
 import proyecto.com.Razonamiento_A_B.enums.EstadoRespuesta;
 import proyecto.com.Razonamiento_A_B.enums.OpcionRespuesta;
 
@@ -37,7 +41,10 @@ import proyecto.com.Razonamiento_A_B.enums.OpcionRespuesta;
 @Entity
 @Table(name = "aplicacion_respuestas")
 @IdClass(RespuestaMarcada.RespuestaMarcadaId.class)
-@View(members = "aplicacionTest; numeroItem; respuestaSeleccionada; estadoRespuesta; fechaRegistro")
+@View(members =
+        "Datos de consulta { aplicacionTest; numeroItem; } " +
+                "Datos de respuesta { respuestaSeleccionada; estadoRespuesta; fechaRegistro; }"
+)
 @Tab(properties = "aplicacionTest.idAplicacion,numeroItem,respuestaSeleccionada,estadoRespuesta,fechaRegistro")
 public class RespuestaMarcada {
 
@@ -54,17 +61,17 @@ public class RespuestaMarcada {
     @Column(name = "numero_item", nullable = false)
     private Integer numeroItem;
 
-    @Required
-    @NotNull(message = "La respuesta seleccionada es obligatoria")
+    @ReadOnly
     @Enumerated(EnumType.STRING)
     @Column(name = "respuesta_seleccionada", nullable = true, length = 1)
     private OpcionRespuesta respuestaSeleccionada;
-    @Required
-    @NotNull(message = "El estado de la respuesta es obligatorio")
+
+    @ReadOnly
     @Enumerated(EnumType.STRING)
     @Column(name = "estado_respuesta", nullable = false, length = 20)
     private EstadoRespuesta estadoRespuesta = EstadoRespuesta.RESPONDIDA;
 
+    @ReadOnly
     @Column(name = "fecha_registro")
     private LocalDateTime fechaRegistro;
 
@@ -79,28 +86,54 @@ public class RespuestaMarcada {
     }
 
     @PrePersist
-    @PreUpdate
-    private void validarRegistro() {
-        if (aplicacionTest == null) {
-            throw new IllegalArgumentException("La respuesta debe pertenecer a una aplicación");
-        }
-        if (numeroItem == null || numeroItem <= 0) {
-            throw new IllegalArgumentException("El número del ítem debe ser mayor a cero");
-        }
+    private void validarNuevoRegistro() {
+        validarClave();
+
         if (respuestaSeleccionada == null) {
-            throw new IllegalArgumentException("La respuesta seleccionada es obligatoria");
+            throw new IllegalArgumentException(
+                    "No se puede crear una respuesta marcada manualmente desde OpenXava. " +
+                            "Las respuestas deben registrarse desde el portal del evaluado."
+            );
         }
+
         if (estadoRespuesta == null) {
             estadoRespuesta = EstadoRespuesta.RESPONDIDA;
         }
+
         if (fechaRegistro == null) {
             fechaRegistro = LocalDateTime.now();
         }
     }
 
-    @Setter
+    @PreUpdate
+    private void validarActualizacion() {
+        validarClave();
+
+        if (estadoRespuesta == null) {
+            estadoRespuesta = respuestaSeleccionada == null
+                    ? EstadoRespuesta.OMITIDA
+                    : EstadoRespuesta.RESPONDIDA;
+        }
+
+        if (fechaRegistro == null) {
+            fechaRegistro = LocalDateTime.now();
+        }
+    }
+
+    private void validarClave() {
+        if (aplicacionTest == null) {
+            throw new IllegalArgumentException("Debe seleccionar una aplicación de test.");
+        }
+
+        if (numeroItem == null || numeroItem <= 0) {
+            throw new IllegalArgumentException("El número del ítem debe ser mayor a cero.");
+        }
+    }
+
     @Getter
+    @Setter
     public static class RespuestaMarcadaId implements Serializable {
+
         private Integer aplicacionTest;
         private Integer numeroItem;
 

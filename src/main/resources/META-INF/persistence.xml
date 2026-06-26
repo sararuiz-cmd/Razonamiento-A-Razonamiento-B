@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <persistence xmlns="http://xmlns.jcp.org/xml/ns/persistence"
-			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-			 xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_2.xsd"
-			 version="2.2">
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_2.xsd"
+             version="2.2">
 
 	<persistence-unit name="default">
 
@@ -11,6 +11,12 @@
 
 		<class>proyecto.com.Razonamiento_A_B.modelo.Evaluado</class>
 		<class>proyecto.com.Razonamiento_A_B.modelo.Evaluador</class>
+		<class>proyecto.com.Razonamiento_A_B.modelo.TestRazonamiento</class>
+		<class>proyecto.com.Razonamiento_A_B.modelo.ItemRazonamiento</class>
+		<class>proyecto.com.Razonamiento_A_B.modelo.AplicacionTest</class>
+		<class>proyecto.com.Razonamiento_A_B.modelo.RespuestaMarcada</class>
+		<class>proyecto.com.Razonamiento_A_B.modelo.ResultadoRazonamiento</class>
+		<class>proyecto.com.Razonamiento_A_B.modelo.BaremoRazonamiento</class>
 
 		<properties>
 			<property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>

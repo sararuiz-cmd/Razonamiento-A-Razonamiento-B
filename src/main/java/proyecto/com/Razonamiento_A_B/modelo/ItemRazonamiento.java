@@ -56,7 +56,7 @@ import proyecto.com.Razonamiento_A_B.enums.TipoItem;
                         "Clasificación { subFactor; tipoItem; }"
         )
 })
-@Tab(properties = "idItem,test.tipoTest,numero,enunciado,respuestaCorrecta,subFactor,tipoItem")
+@Tab(properties = "idItem,test.nombre,numero,enunciado,respuestaCorrecta,subFactor,tipoItem")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -70,7 +70,7 @@ public class ItemRazonamiento {
     private Integer idItem;
 
     @Required
-    @DescriptionsList(descriptionProperties = "tipoTest")
+    @DescriptionsList(descriptionProperties = "nombre")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_test_fk", nullable = false)
     private TestRazonamiento test;
@@ -125,7 +125,9 @@ public class ItemRazonamiento {
     private TipoItem tipoItem;
 
     public boolean verificarRespuesta(OpcionRespuesta respuesta) {
-        return respuesta != null && respuestaCorrecta != null && respuestaCorrecta == respuesta;
+        return respuesta != null
+                && respuestaCorrecta != null
+                && respuestaCorrecta == respuesta;
     }
 
     public boolean verificarRespuesta(String respuesta) {
@@ -148,34 +150,40 @@ public class ItemRazonamiento {
     @PreUpdate
     private void validarRegistro() {
         if (test == null) {
-            throw new IllegalArgumentException("El ítem debe pertenecer a un test");
+            throw new IllegalArgumentException("El ítem debe pertenecer a un test.");
         }
 
         if (numero == null || numero <= 0) {
-            throw new IllegalArgumentException("El número del ítem debe ser mayor a cero");
+            throw new IllegalArgumentException("El número del ítem debe ser mayor a cero.");
         }
 
         if (enunciado == null || enunciado.trim().isEmpty()) {
-            throw new IllegalArgumentException("El enunciado es obligatorio");
+            throw new IllegalArgumentException("El enunciado es obligatorio.");
         }
 
         if (opcionA == null || opcionA.trim().isEmpty()
                 || opcionB == null || opcionB.trim().isEmpty()
                 || opcionC == null || opcionC.trim().isEmpty()
                 || opcionD == null || opcionD.trim().isEmpty()) {
-            throw new IllegalArgumentException("Las opciones A, B, C y D son obligatorias");
+            throw new IllegalArgumentException("Las opciones A, B, C y D son obligatorias.");
         }
 
         if (respuestaCorrecta == null) {
-            throw new IllegalArgumentException("La respuesta correcta es obligatoria");
+            throw new IllegalArgumentException("La respuesta correcta es obligatoria.");
         }
 
         if (subFactor == null) {
-            throw new IllegalArgumentException("El subfactor es obligatorio");
+            throw new IllegalArgumentException("El subfactor es obligatorio.");
         }
 
         if (tipoItem == null) {
-            throw new IllegalArgumentException("El tipo de ítem es obligatorio");
+            throw new IllegalArgumentException("El tipo de ítem es obligatorio.");
         }
+
+        enunciado = enunciado.trim();
+        opcionA = opcionA.trim();
+        opcionB = opcionB.trim();
+        opcionC = opcionC.trim();
+        opcionD = opcionD.trim();
     }
 }

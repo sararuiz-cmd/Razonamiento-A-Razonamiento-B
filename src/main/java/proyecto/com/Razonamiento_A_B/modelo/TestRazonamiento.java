@@ -20,7 +20,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -28,7 +27,6 @@ import javax.validation.constraints.NotNull;
 import org.openxava.annotations.CollectionView;
 import org.openxava.annotations.Hidden;
 import org.openxava.annotations.ListProperties;
-import org.openxava.annotations.ReadOnly;
 import org.openxava.annotations.Required;
 import org.openxava.annotations.Stereotype;
 import org.openxava.annotations.Tab;
@@ -39,13 +37,13 @@ import org.openxava.annotations.Views;
 @Table(name = "tests_razonamiento")
 @Views({
         @View(members =
-                "Datos del test { nombre; tiempoLimite; notaTiempo; } " +
+                "Datos del test { nombre; tiempoLimite; } " +
                         "Instrucciones { instrucciones; } " +
                         "Ítems { items; }"
         ),
 
         @View(name = "Simple", members =
-                "Datos del test { nombre; tiempoLimite; notaTiempo; }"
+                "Datos del test { nombre; tiempoLimite; }"
         )
 })
 @Tab(properties = "idTest,nombre,tiempoLimite")
@@ -86,20 +84,6 @@ public class TestRazonamiento {
     @CollectionView("DesdeTest")
     @ListProperties("numero,enunciado,opcionA,opcionB,opcionC,opcionD,respuestaCorrecta,subFactor,tipoItem")
     private List<ItemRazonamiento> items = new ArrayList<>();
-
-    @Transient
-    @ReadOnly
-    @Stereotype("MEMO")
-    public String getNotaTiempo() {
-        if (nombre == null || tiempoLimite == null) {
-            return "Ingrese el nombre del test y su tiempo límite.";
-        }
-
-        return nombre.trim()
-                + " tiene un tiempo límite de "
-                + tiempoLimite
-                + " minutos. Este tiempo se respetará tanto si se aplica solo como si se aplica dentro de una lista de tests.";
-    }
 
     public List<ItemRazonamiento> cargarItems() {
         return items;

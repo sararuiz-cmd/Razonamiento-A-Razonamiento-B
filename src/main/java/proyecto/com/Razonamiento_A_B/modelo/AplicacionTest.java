@@ -55,11 +55,9 @@ import proyecto.com.Razonamiento_A_B.enums.OpcionRespuesta;
 @Table(name = "aplicaciontest")
 @View(members =
         "Datos de aplicación { evaluado; evaluador; estado; } " +
-                "Tests a aplicar { testsAplicados; } " +
-                "Control de tiempo { fechaInicio; fechaFin; testActual; fechaInicioTestActual; fechaFinTestActual; tiempoLimiteActual; tiempoRestanteActual; } " +
-                "Respuestas { respuestasMarcadas; }"
+                "Tests a aplicar { testsAplicados; }"
 )
-@Tab(properties = "idAplicacion,evaluado.nombres,evaluado.apellidos,evaluador.nombres,evaluador.apellidos,estado,testActual,fechaInicio,fechaFin")
+@Tab(properties = "idAplicacion,evaluado.nombres,evaluado.apellidos,evaluador.nombres,evaluador.apellidos,estado")
 public class AplicacionTest {
 
     @Id
@@ -118,7 +116,6 @@ public class AplicacionTest {
     private LocalDateTime fechaFinTestActual;
 
     @OneToMany(mappedBy = "aplicacionTest", cascade = CascadeType.ALL, orphanRemoval = true)
-    @ListProperties("numeroItem,respuestaSeleccionada,estadoRespuesta,fechaRegistro")
     private List<RespuestaMarcada> respuestasMarcadas = new ArrayList<>();
 
     public void iniciarAplicacion() {
@@ -211,6 +208,7 @@ public class AplicacionTest {
 
             fechaInicio = ahora;
             fechaFin = ahora;
+            fechaFinTestActual = ahora;
             estado = EstadoAplicacion.FINALIZADA;
             return;
         }
@@ -432,6 +430,10 @@ public class AplicacionTest {
 
             if (fechaFin == null) {
                 fechaFin = LocalDateTime.now();
+            }
+
+            if (fechaFinTestActual == null) {
+                fechaFinTestActual = fechaFin;
             }
         }
     }
